@@ -1,0 +1,111 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "build",
+                "${workspaceFolder}/Gauniv.WebServer/Gauniv.WebServer.csproj",
+                "/property:GenerateFullPaths=true",
+                "/consoleloggerparameters:NoSummary;ForceNoAlign"
+            ],
+            "problemMatcher": "$msCompile",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "build-client",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "build",
+                "${workspaceFolder}/Gauniv.Client/Gauniv.Client.csproj",
+                "/property:GenerateFullPaths=true",
+                "/consoleloggerparameters:NoSummary;ForceNoAlign"
+            ],
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "delete-database",
+            "type": "shell",
+            "command": "powershell",
+            "args": [
+                "-Command",
+                "$dbPath = '${workspaceFolder}/Gauniv.WebServer/gauniv.db'; if (Test-Path $dbPath) { Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($dbPath, 'OnlyErrorDialogs', 'SendToRecycleBin'); Write-Host '数据库已移动到回收站' } else { Write-Host '数据库文件不存在，跳过删除' }"
+            ],
+            "problemMatcher": [],
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            }
+        },
+        {
+            "label": "delete-database-shm-wal",
+            "type": "shell",
+            "command": "powershell",
+            "args": [
+                "-Command",
+                "$shmPath = '${workspaceFolder}/Gauniv.WebServer/gauniv.db-shm'; $walPath = '${workspaceFolder}/Gauniv.WebServer/gauniv.db-wal'; Add-Type -AssemblyName Microsoft.VisualBasic; if (Test-Path $shmPath) { [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($shmPath, 'OnlyErrorDialogs', 'SendToRecycleBin') }; if (Test-Path $walPath) { [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($walPath, 'OnlyErrorDialogs', 'SendToRecycleBin') }; Write-Host 'SQLite 临时文件已清理'"
+            ],
+            "problemMatcher": [],
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            }
+        },
+        {
+            "label": "delete-and-rebuild-database",
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "delete-database",
+                "delete-database-shm-wal",
+                "build"
+            ],
+            "problemMatcher": [],
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            }
+        },
+        {
+            "label": "watch",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "watch",
+                "run",
+                "--project",
+                "${workspaceFolder}/Gauniv.WebServer/Gauniv.WebServer.csproj"
+            ],
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "clean",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "clean",
+                "${workspaceFolder}/Gauniv.WebServer/Gauniv.WebServer.csproj",
+                "/property:GenerateFullPaths=true",
+                "/consoleloggerparameters:NoSummary;ForceNoAlign"
+            ],
+            "problemMatcher": "$msCompile"
+        }
+    ]
+}

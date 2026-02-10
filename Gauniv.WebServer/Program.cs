@@ -28,18 +28,10 @@
 #endregion
 using Gauniv.WebServer.Data;
 using Gauniv.WebServer.Dtos;
-using Gauniv.WebServer.Security;
 using Gauniv.WebServer.Services;
 using Gauniv.WebServer.Websocket;
 using Mapster;
-using Microsoft.AspNetCore.Authentication.BearerToken;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.Data;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using System.Globalization;
 
 
@@ -78,21 +70,37 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 //     options.UseInMemoryDatabase("Gauniv.db"));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-builder.Services.AddIdentityApiEndpoints<User>(options => {
-    options.SignIn.RequireConfirmedAccount = false;
+// 配置 Identity 服务
+builder.Services.AddDefaultIdentity<User>(options => 
+{
+    // 密码设置
     options.Password.RequireDigit = false;
-    options.Password.RequiredLength = 1;
     options.Password.RequireLowercase = false;
     options.Password.RequireNonAlphanumeric = false;
     options.Password.RequireUppercase = false;
-}).AddRoles<IdentityRole>()
-  .AddRoleManager<RoleManager<IdentityRole>>()
-  .AddEntityFrameworkStores<ApplicationDbContext>();
-builder.Services.AddControllersWithViews().AddViewLocalization(Microsoft.AspNetCore.Mvc.Razor.LanguageViewLocationExpanderFormat.Suffix).AddDataAnnotationsLocalization();
-builder.Services.AddOpenApi(options =>
+    options.Password.RequiredLength = 6;
+    options.Password.RequiredUniqueChars = 0;
+    
+    // 用户设置
+    options.User.RequireUniqueEmail = true;
+    
+    // 登录设置
+    options.SignIn.RequireConfirmedEmail = false;
+    options.SignIn.RequireConfirmedAccount = false;
+})
+.AddEntityFrameworkStores<ApplicationDbContext>();
+
+// 添加 Session 支持
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(options =>
 {
-    options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
+    options.IdleTimeout = TimeSpan.FromMinutes(30); // Session 超时时间
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
 });
+
+builder.Services.AddControllersWithViews().AddViewLocalization(Microsoft.AspNetCore.Mvc.Razor.LanguageViewLocationExpanderFormat.Suffix).AddDataAnnotationsLocalization();
+builder.Services.AddOpenApi();
 builder.Services.AddRazorPages();
 
 builder.Services.AddMapster();
@@ -103,20 +111,6 @@ builder.Services.AddScoped<MappingProfile, MappingProfile>();
 
 var app = builder.Build();
 
-// 自动应用数据库迁移 (Auto apply database migrations)
-using (var scope = app.Services.CreateScope())
-{
-    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    try
-    {
-        dbContext.Database.Migrate();
-    }
-    catch (Exception ex)
-    {
-        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "An error occurred while migrating the database.");
-    }
-}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -133,8 +127,12 @@ else
 app.UseHttpsRedirection();
 app.UseRouting();
 
+// 使用认证和授权
 app.UseAuthentication();
 app.UseAuthorization();
+
+// 使用 Session
+app.UseSession();
 
 app.MapStaticAssets();
 
@@ -147,37 +145,6 @@ app.MapRazorPages()
    .WithStaticAssets();
 
 app.MapOpenApi();
-app.MapGroup("Bearer").MapPost("/login", async Task<Results<Ok<AccessTokenResponse>, EmptyHttpResult, ProblemHttpResult>>
-            ([FromBody] LoginRequest login, [FromQuery] bool? useCookies, [FromQuery] bool? useSessionCookies, [FromServices] IServiceProvider sp) =>
-        {
-            var signInManager = sp.GetRequiredService<SignInManager<User>>();
-
-            var useCookieScheme = (useCookies == true) || (useSessionCookies == true);
-            var isPersistent = (useCookies == true) && (useSessionCookies != true);
-            signInManager.AuthenticationScheme = useCookieScheme ? IdentityConstants.ApplicationScheme : IdentityConstants.BearerScheme;
-
-            var result = await signInManager.PasswordSignInAsync(login.Email, login.Password, isPersistent, lockoutOnFailure: true);
-
-            if (result.RequiresTwoFactor)
-            {
-                if (!string.IsNullOrEmpty(login.TwoFactorCode))
-                {
-                    result = await signInManager.TwoFactorAuthenticatorSignInAsync(login.TwoFactorCode, isPersistent, rememberClient: isPersistent);
-                }
-                else if (!string.IsNullOrEmpty(login.TwoFactorRecoveryCode))
-                {
-                    result = await signInManager.TwoFactorRecoveryCodeSignInAsync(login.TwoFactorRecoveryCode);
-                }
-            }
-
-            if (!result.Succeeded)
-            {
-                return TypedResults.Problem(result.ToString(), statusCode: StatusCodes.Status401Unauthorized);
-            }
-
-            // The signInManager already produced the needed response in the form of a cookie or bearer token.
-            return TypedResults.Empty;
-        });
 
 app.UseSwaggerUI(options =>
 {

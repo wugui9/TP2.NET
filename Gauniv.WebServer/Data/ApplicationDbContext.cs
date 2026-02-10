@@ -26,7 +26,6 @@
 // 
 // Please respect the team's standards for any future contribution
 #endregion
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
@@ -39,6 +38,7 @@ namespace Gauniv.WebServer.Data
         {
         }
 
+        public DbSet<User> Users { get; set; }
         public DbSet<Game> Games { get; set; }
         public DbSet<Category> Categories { get; set; }
 

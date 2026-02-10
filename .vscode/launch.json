@@ -1,0 +1,65 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "启动 WebServer",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/Gauniv.WebServer/bin/Debug/net9.0/Gauniv.WebServer.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/Gauniv.WebServer",
+            "stopAtEntry": false,
+            "serverReadyAction": {
+                "action": "openExternally",
+                "pattern": "\\bNow listening on:\\s+(https?://\\S+)",
+                "uriFormat": "%s"
+            },
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development"
+            },
+            "sourceFileMap": {
+                "/Views": "${workspaceFolder}/Gauniv.WebServer/Views"
+            }
+        },
+        {
+            "name": "删除数据库并重建",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "delete-and-rebuild-database",
+            "program": "${workspaceFolder}/Gauniv.WebServer/bin/Debug/net9.0/Gauniv.WebServer.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/Gauniv.WebServer",
+            "stopAtEntry": false,
+            "serverReadyAction": {
+                "action": "openExternally",
+                "pattern": "\\bNow listening on:\\s+(https?://\\S+)",
+                "uriFormat": "%s"
+            },
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development"
+            },
+            "sourceFileMap": {
+                "/Views": "${workspaceFolder}/Gauniv.WebServer/Views"
+            }
+        },
+        {
+            "name": "启动 Client",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build-client",
+            "program": "${workspaceFolder}/Gauniv.Client/bin/Debug/net9.0/Gauniv.Client.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/Gauniv.Client",
+            "console": "integratedTerminal",
+            "stopAtEntry": false
+        }
+    ],
+    "compounds": [
+        {
+            "name": "启动 WebServer + Client",
+            "configurations": ["启动 WebServer", "启动 Client"],
+            "stopAll": true
+        }
+    ]
+}
