@@ -1,4 +1,4 @@
-﻿#region Header
+#region Header
 // Cyril Tisserand
 // Projet Gauniv - WebServer
 // Gauniv 2025
@@ -38,6 +38,25 @@ namespace Gauniv.WebServer.Data
             : base(options)
         {
         }
+
         public DbSet<Game> Games { get; set; }
+        public DbSet<Category> Categories { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            // 配置 Game 和 Category 的多对多关系
+            modelBuilder.Entity<Game>()
+                .HasMany(g => g.Categories)
+                .WithMany(c => c.Games)
+                .UsingEntity(j => j.ToTable("GameCategories"));
+
+            // 配置 User 和 Game 的多对多关系 (购买关系)
+            modelBuilder.Entity<User>()
+                .HasMany(u => u.OwnedGames)
+                .WithMany(g => g.Owners)
+                .UsingEntity(j => j.ToTable("UserGames"));
+        }
     }
 }

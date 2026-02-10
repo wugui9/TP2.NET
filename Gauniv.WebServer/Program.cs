@@ -66,11 +66,16 @@ builder.Services.Configure<RequestLocalizationOptions>(s =>
     ];
 });
 // Add services to the container.
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-/*builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseNpgsql(connectionString));*/
+// 使用 SQLite 数据库 (Using SQLite database)
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseInMemoryDatabase("Gauniv.db"));
+    options.UseSqlite("Data Source=gauniv.db"));
+// 如果要使用 PostgreSQL，取消下面的注释并注释掉上面的 SQLite 配置
+// var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+// builder.Services.AddDbContext<ApplicationDbContext>(options =>
+//     options.UseNpgsql(connectionString));
+// 如果要使用 InMemory 数据库 (用于测试)
+// builder.Services.AddDbContext<ApplicationDbContext>(options =>
+//     options.UseInMemoryDatabase("Gauniv.db"));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddIdentityApiEndpoints<User>(options => {
@@ -80,7 +85,9 @@ builder.Services.AddIdentityApiEndpoints<User>(options => {
     options.Password.RequireLowercase = false;
     options.Password.RequireNonAlphanumeric = false;
     options.Password.RequireUppercase = false;
-}).AddRoles<IdentityRole>().AddEntityFrameworkStores<ApplicationDbContext>();
+}).AddRoles<IdentityRole>()
+  .AddRoleManager<RoleManager<IdentityRole>>()
+  .AddEntityFrameworkStores<ApplicationDbContext>();
 builder.Services.AddControllersWithViews().AddViewLocalization(Microsoft.AspNetCore.Mvc.Razor.LanguageViewLocationExpanderFormat.Suffix).AddDataAnnotationsLocalization();
 builder.Services.AddOpenApi(options =>
 {
@@ -95,6 +102,21 @@ builder.Services.AddHostedService<SetupService>();
 builder.Services.AddScoped<MappingProfile, MappingProfile>();
 
 var app = builder.Build();
+
+// 自动应用数据库迁移 (Auto apply database migrations)
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    try
+    {
+        dbContext.Database.Migrate();
+    }
+    catch (Exception ex)
+    {
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred while migrating the database.");
+    }
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
