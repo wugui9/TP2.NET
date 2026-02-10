@@ -1,4 +1,4 @@
-﻿#region Header
+#region Header
 // Cyril Tisserand
 // Projet Gauniv - WebServer
 // Gauniv 2025
@@ -50,27 +50,226 @@ namespace Gauniv.WebServer.Services
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            using (var scope = serviceProvider.CreateScope()) // this will use `IServiceScopeFactory` internally
+            using (var scope = serviceProvider.CreateScope())
             {
                 applicationDbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
-                var userSignInManager = scope.ServiceProvider.GetService<UserManager<User>>();
-                var signInManager = scope.ServiceProvider.GetService<SignInManager<User>>();
+                var userManager = scope.ServiceProvider.GetService<UserManager<User>>();
+                var roleManager = scope.ServiceProvider.GetService<RoleManager<IdentityRole>>();
 
-                if (applicationDbContext is null)
+                if (applicationDbContext is null || userManager is null || roleManager is null)
                 {
-                    throw new Exception("ApplicationDbContext is null");
+                    throw new Exception("Required services are null");
                 }
 
-                var r = userSignInManager?.CreateAsync(new User()
+                // 确保数据库已创建
+                applicationDbContext.Database.EnsureCreated();
+
+                // 创建角色
+                if (!roleManager.RoleExistsAsync("Admin").Result)
                 {
-                    UserName = "test@test.com",
-                    Email = "test@test.com",
-                    EmailConfirmed = true
-                }, "password").Result;
+                    roleManager.CreateAsync(new IdentityRole("Admin")).Wait();
+                }
+                if (!roleManager.RoleExistsAsync("User").Result)
+                {
+                    roleManager.CreateAsync(new IdentityRole("User")).Wait();
+                }
 
-                // ....
+                // 创建管理员用户
+                var adminUser = userManager.FindByEmailAsync("admin@gauniv.com").Result;
+                if (adminUser == null)
+                {
+                    adminUser = new User()
+                    {
+                        UserName = "admin@gauniv.com",
+                        Email = "admin@gauniv.com",
+                        EmailConfirmed = true,
+                        FirstName = "Admin",
+                        LastName = "User",
+                        RegisteredAt = DateTime.UtcNow
+                    };
+                    var result = userManager.CreateAsync(adminUser, "Admin123!").Result;
+                    if (result.Succeeded)
+                    {
+                        userManager.AddToRoleAsync(adminUser, "Admin").Wait();
+                    }
+                }
 
-                applicationDbContext.SaveChanges();
+                // 创建测试用户
+                var testUser = userManager.FindByEmailAsync("test@test.com").Result;
+                if (testUser == null)
+                {
+                    testUser = new User()
+                    {
+                        UserName = "test@test.com",
+                        Email = "test@test.com",
+                        EmailConfirmed = true,
+                        FirstName = "Test",
+                        LastName = "User",
+                        RegisteredAt = DateTime.UtcNow
+                    };
+                    var result = userManager.CreateAsync(testUser, "password").Result;
+                    if (result.Succeeded)
+                    {
+                        userManager.AddToRoleAsync(testUser, "User").Wait();
+                    }
+                }
+
+                // 创建游戏类别
+                if (!applicationDbContext.Categories.Any())
+                {
+                    var categories = new List<Category>
+                    {
+                        new Category { Name = "Action", Description = "快节奏的动作游戏" },
+                        new Category { Name = "Adventure", Description = "冒险探索类游戏" },
+                        new Category { Name = "RPG", Description = "角色扮演游戏" },
+                        new Category { Name = "Strategy", Description = "策略游戏" },
+                        new Category { Name = "Simulation", Description = "模拟经营类游戏" },
+                        new Category { Name = "Sports", Description = "体育竞技游戏" }
+                    };
+
+                    applicationDbContext.Categories.AddRange(categories);
+                    applicationDbContext.SaveChanges();
+                }
+
+                // 创建测试游戏
+                if (!applicationDbContext.Games.Any())
+                {
+                    var actionCategory = applicationDbContext.Categories.First(c => c.Name == "Action");
+                    var adventureCategory = applicationDbContext.Categories.First(c => c.Name == "Adventure");
+                    var rpgCategory = applicationDbContext.Categories.First(c => c.Name == "RPG");
+                    var strategyCategory = applicationDbContext.Categories.First(c => c.Name == "Strategy");
+                    var simulationCategory = applicationDbContext.Categories.First(c => c.Name == "Simulation");
+                    var sportsCategory = applicationDbContext.Categories.First(c => c.Name == "Sports");
+
+                    var games = new List<Game>
+                    {
+                        new Game
+                        {
+                            Name = "Space Warriors",
+                            Description = "在外太空与敌人战斗的动作射击游戏。体验激烈的太空战斗，保卫地球！",
+                            Price = 29.99m,
+                            Size = 1024 * 1024 * 500, // 500MB
+                            FileName = "SpaceWarriors.exe",
+                            Payload = Encoding.UTF8.GetBytes("Demo game content for Space Warriors"),
+                            Categories = new List<Category> { actionCategory },
+                            CreatedAt = DateTime.UtcNow.AddDays(-30)
+                        },
+                        new Game
+                        {
+                            Name = "Mystery Island",
+                            Description = "探索神秘岛屿，解开古老的谜题。你能找到宝藏吗？",
+                            Price = 19.99m,
+                            Size = 1024 * 1024 * 800, // 800MB
+                            FileName = "MysteryIsland.exe",
+                            Payload = Encoding.UTF8.GetBytes("Demo game content for Mystery Island"),
+                            Categories = new List<Category> { adventureCategory },
+                            CreatedAt = DateTime.UtcNow.AddDays(-25)
+                        },
+                        new Game
+                        {
+                            Name = "Dragon's Quest",
+                            Description = "史诗级RPG冒险游戏。扮演勇士，打败恶龙，拯救王国！",
+                            Price = 49.99m,
+                            Size = 1024 * 1024 * 1200, // 1.2GB
+                            FileName = "DragonsQuest.exe",
+                            Payload = Encoding.UTF8.GetBytes("Demo game content for Dragon's Quest"),
+                            Categories = new List<Category> { rpgCategory, adventureCategory },
+                            CreatedAt = DateTime.UtcNow.AddDays(-20)
+                        },
+                        new Game
+                        {
+                            Name = "Empire Builder",
+                            Description = "建立你的帝国，征服世界。策略、外交、战争，你能统治一切吗？",
+                            Price = 39.99m,
+                            Size = 1024 * 1024 * 600, // 600MB
+                            FileName = "EmpireBuilder.exe",
+                            Payload = Encoding.UTF8.GetBytes("Demo game content for Empire Builder"),
+                            Categories = new List<Category> { strategyCategory },
+                            CreatedAt = DateTime.UtcNow.AddDays(-15)
+                        },
+                        new Game
+                        {
+                            Name = "Farm Life",
+                            Description = "经营你的农场，种植作物，养殖动物。体验宁静的田园生活。",
+                            Price = 14.99m,
+                            Size = 1024 * 1024 * 300, // 300MB
+                            FileName = "FarmLife.exe",
+                            Payload = Encoding.UTF8.GetBytes("Demo game content for Farm Life"),
+                            Categories = new List<Category> { simulationCategory },
+                            CreatedAt = DateTime.UtcNow.AddDays(-10)
+                        },
+                        new Game
+                        {
+                            Name = "Racing Champions",
+                            Description = "极速赛车游戏，在世界各地的赛道上竞速！",
+                            Price = 24.99m,
+                            Size = 1024 * 1024 * 700, // 700MB
+                            FileName = "RacingChampions.exe",
+                            Payload = Encoding.UTF8.GetBytes("Demo game content for Racing Champions"),
+                            Categories = new List<Category> { sportsCategory },
+                            CreatedAt = DateTime.UtcNow.AddDays(-7)
+                        },
+                        new Game
+                        {
+                            Name = "Cyber Ninja",
+                            Description = "在未来世界中扮演忍者，使用高科技武器完成任务。",
+                            Price = 34.99m,
+                            Size = 1024 * 1024 * 900, // 900MB
+                            FileName = "CyberNinja.exe",
+                            Payload = Encoding.UTF8.GetBytes("Demo game content for Cyber Ninja"),
+                            Categories = new List<Category> { actionCategory, rpgCategory },
+                            CreatedAt = DateTime.UtcNow.AddDays(-5)
+                        },
+                        new Game
+                        {
+                            Name = "Puzzle Master",
+                            Description = "挑战你的智力，解决各种复杂的谜题。",
+                            Price = 9.99m,
+                            Size = 1024 * 1024 * 150, // 150MB
+                            FileName = "PuzzleMaster.exe",
+                            Payload = Encoding.UTF8.GetBytes("Demo game content for Puzzle Master"),
+                            Categories = new List<Category> { adventureCategory },
+                            CreatedAt = DateTime.UtcNow.AddDays(-3)
+                        },
+                        new Game
+                        {
+                            Name = "City Manager",
+                            Description = "建设和管理你的城市，让市民过上幸福的生活。",
+                            Price = 29.99m,
+                            Size = 1024 * 1024 * 550, // 550MB
+                            FileName = "CityManager.exe",
+                            Payload = Encoding.UTF8.GetBytes("Demo game content for City Manager"),
+                            Categories = new List<Category> { simulationCategory, strategyCategory },
+                            CreatedAt = DateTime.UtcNow.AddDays(-2)
+                        },
+                        new Game
+                        {
+                            Name = "Soccer Star",
+                            Description = "成为足球巨星，带领你的球队赢得冠军！",
+                            Price = 19.99m,
+                            Size = 1024 * 1024 * 400, // 400MB
+                            FileName = "SoccerStar.exe",
+                            Payload = Encoding.UTF8.GetBytes("Demo game content for Soccer Star"),
+                            Categories = new List<Category> { sportsCategory },
+                            CreatedAt = DateTime.UtcNow.AddDays(-1)
+                        }
+                    };
+
+                    applicationDbContext.Games.AddRange(games);
+                    applicationDbContext.SaveChanges();
+
+                    // 为测试用户添加几个已购买的游戏
+                    testUser = userManager.FindByEmailAsync("test@test.com").Result;
+                    if (testUser != null)
+                    {
+                        var ownedGames = applicationDbContext.Games.Take(3).ToList();
+                        foreach (var game in ownedGames)
+                        {
+                            game.Owners.Add(testUser);
+                        }
+                        applicationDbContext.SaveChanges();
+                    }
+                }
 
                 return Task.CompletedTask;
             }

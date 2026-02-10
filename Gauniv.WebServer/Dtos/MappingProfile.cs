@@ -1,4 +1,4 @@
-﻿#region Header
+#region Header
 // Cyril Tisserand
 // Projet Gauniv - WebServer
 // Gauniv 2025
@@ -29,7 +29,6 @@
 
 using Gauniv.WebServer.Data;
 using Mapster;
-using Mapster.EFCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace Gauniv.WebServer.Dtos
@@ -38,8 +37,17 @@ namespace Gauniv.WebServer.Dtos
     {
         public MappingProfile(ApplicationDbContext dbContext)
         {
-            TypeAdapterConfig<Game, GameDto>.NewConfig();
-            TypeAdapterConfig<GameDto, Game>.NewConfig();
+            // Game to GameDto mapping
+            TypeAdapterConfig<Game, GameDto>.NewConfig()
+                .Map(dest => dest.Categories, src => src.Categories);
+
+            // Game to GameListDto mapping
+            TypeAdapterConfig<Game, GameListDto>.NewConfig()
+                .Map(dest => dest.CategoryNames, src => src.Categories.Select(c => c.Name).ToList());
+
+            // Category to CategoryDto mapping
+            TypeAdapterConfig<Category, CategoryDto>.NewConfig()
+                .Map(dest => dest.GameCount, src => src.Games.Count);
         }
     }
 }

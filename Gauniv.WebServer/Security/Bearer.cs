@@ -1,7 +1,7 @@
-﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.OpenApi;
-using Microsoft.OpenApi;
+using Microsoft.OpenApi.Models;
 
 namespace Gauniv.WebServer.Security;
 
@@ -16,28 +16,37 @@ internal sealed class BearerSecuritySchemeTransformer(IAuthenticationSchemeProvi
         }
         if (authenticationSchemes.Any(authScheme => authScheme.Name == "Identity.Bearer"))
         {
-            // Add the security scheme at the document level
-            var securitySchemes = new Dictionary<string, IOpenApiSecurityScheme>
+            // 在文档级别添加安全方案
+            var securityScheme = new OpenApiSecurityScheme
             {
-                ["Bearer"] = new OpenApiSecurityScheme
-                {
-                    Type = SecuritySchemeType.Http,
-                    Scheme = "bearer", // "bearer" refers to the header name here
-                    In = ParameterLocation.Header,
-                    BearerFormat = "Json Web Token"
-                }
+                Type = SecuritySchemeType.Http,
+                Scheme = "bearer",
+                In = ParameterLocation.Header,
+                BearerFormat = "JWT"
             };
-            document.Components ??= new OpenApiComponents();
-            document.Components.SecuritySchemes = securitySchemes;
 
-            // Apply it as a requirement for all operations
-            foreach (var operation in document.Paths.Values.SelectMany(path => path.Operations))
+            document.Components ??= new OpenApiComponents();
+            document.Components.SecuritySchemes ??= new Dictionary<string, OpenApiSecurityScheme>();
+            document.Components.SecuritySchemes["Bearer"] = securityScheme;
+
+            // 为所有操作应用安全要求
+            foreach (var path in document.Paths.Values)
             {
-                operation.Value.Security ??= [];
-                operation.Value.Security.Add(new OpenApiSecurityRequirement
+                foreach (var operation in path.Operations.Values)
                 {
-                    [new OpenApiSecuritySchemeReference("Bearer", document)] = []
-                });
+                    operation.Security ??= new List<OpenApiSecurityRequirement>();
+                    operation.Security.Add(new OpenApiSecurityRequirement
+                    {
+                        [new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "Bearer"
+                            }
+                        }] = new List<string>()
+                    });
+                }
             }
         }
     }

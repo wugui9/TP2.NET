@@ -1,4 +1,4 @@
-﻿#region Header
+#region Header
 // Cyril Tisserand
 // Projet Gauniv - WebServer
 // Gauniv 2025
@@ -39,5 +39,54 @@ namespace Gauniv.WebServer.Dtos
     public class GameDto
     {
         public int Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public decimal Price { get; set; }
+        public long Size { get; set; }
+        public string? FileName { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public List<CategoryDto> Categories { get; set; } = new();
+        public bool IsOwned { get; set; } // 当前用户是否拥有此游戏
+    }
+
+    public class GameListDto
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public decimal Price { get; set; }
+        public long Size { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public List<string> CategoryNames { get; set; } = new();
+        public bool IsOwned { get; set; }
+    }
+
+    public class CreateGameDto
+    {
+        [Required]
+        [MaxLength(200)]
+        public string Name { get; set; } = string.Empty;
+
+        [MaxLength(2000)]
+        public string Description { get; set; } = string.Empty;
+
+        [Required]
+        public decimal Price { get; set; }
+
+        public IFormFile? GameFile { get; set; }
+
+        public List<int> CategoryIds { get; set; } = new();
+    }
+
+    public class UpdateGameDto
+    {
+        [MaxLength(200)]
+        public string? Name { get; set; }
+
+        [MaxLength(2000)]
+        public string? Description { get; set; }
+
+        public decimal? Price { get; set; }
+
+        public List<int>? CategoryIds { get; set; }
     }
 }

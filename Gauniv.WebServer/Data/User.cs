@@ -1,4 +1,4 @@
-﻿#region Header
+#region Header
 // Cyril Tisserand
 // Projet Gauniv - WebServer
 // Gauniv 2025
@@ -33,5 +33,20 @@ namespace Gauniv.WebServer.Data
 {
     public class User : IdentityUser
     {
+        [MaxLength(100)]
+        public string FirstName { get; set; } = string.Empty;
+
+        [MaxLength(100)]
+        public string LastName { get; set; } = string.Empty;
+
+        // 用户拥有的游戏列表 (多对多关系)
+        public ICollection<Game> OwnedGames { get; set; } = new List<Game>();
+
+        // 注册时间
+        public DateTime RegisteredAt { get; set; } = DateTime.UtcNow;
+
+        // 用户密码
+        [MaxLength(100)]
+        public string? Password { get; set; } = string.Empty;
     }
 }
