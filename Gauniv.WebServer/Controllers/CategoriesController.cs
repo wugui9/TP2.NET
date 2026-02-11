@@ -22,10 +22,7 @@ namespace Gauniv.WebServer.Controllers
             _dbContext = dbContext;
             _logger = logger;
         }
-
-        /// <summary>
-        /// 获取所有游戏类别
-        /// </summary>
+        
         [HttpGet]
         public async Task<IActionResult> GetCategories()
         {
@@ -45,9 +42,7 @@ namespace Gauniv.WebServer.Controllers
             return Ok(local_categoryDtos);
         }
 
-        /// <summary>
-        /// 根据ID获取类别详情
-        /// </summary>
+
         [HttpGet("{id}")]
         public async Task<IActionResult> GetCategoryById(int id)
         {
@@ -71,9 +66,7 @@ namespace Gauniv.WebServer.Controllers
             return Ok(local_categoryDto);
         }
 
-        /// <summary>
-        /// 获取某个类别下的所有游戏
-        /// </summary>
+
         [HttpGet("{id}/games")]
         public async Task<IActionResult> GetGamesByCategory(int id)
         {
@@ -89,6 +82,7 @@ namespace Gauniv.WebServer.Controllers
                 return NotFound(new { message = "Category not found" });
             }
 
+            var local_currentUserId = HttpContext.Session.GetString("UserId");
             var local_gameDtos = local_category.Games
                 .OrderByDescending(g => g.CreatedAt)
                 .Select(g => new GameListDto
@@ -99,7 +93,8 @@ namespace Gauniv.WebServer.Controllers
                     Size = g.Size,
                     CreatedAt = g.CreatedAt,
                     CategoryNames = g.Categories.Select(c => c.Name).ToList(),
-                    IsOwned = false // 需要用户信息才能判断，这里简化处理
+                    IsOwned = !string.IsNullOrEmpty(local_currentUserId) && 
+                              g.Owners.Any(o => o.Id == local_currentUserId)
                 }).ToList();
 
             return Ok(new
