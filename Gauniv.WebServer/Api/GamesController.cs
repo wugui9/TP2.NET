@@ -43,7 +43,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Gauniv.WebServer.Api
 {
-    [Route("api/1.0.0/[controller]")]
+    [Route("api/[controller]")]
     [ApiController]
     public class GamesController(ApplicationDbContext appDbContext, IMapper mapper, UserManager<User> userManager, MappingProfile mp) : ControllerBase
     {

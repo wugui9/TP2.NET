@@ -1,0 +1,492 @@
+<?php require_once __DIR__ . '/../config.php'; ?>
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><?php echo $page_title ?? 'Gauniv 游戏平台'; ?></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #8B6F47;
+            --secondary-color: #6B8E23;
+            --grass-green: #7CB342;
+            --sky-blue: #87CEEB;
+            --wood-brown: #8B6F47;
+            --warm-yellow: #F4D03F;
+            --soft-pink: #FFB6C1;
+        }
+        
+        body {
+            background: linear-gradient(
+                180deg,
+                #87CEEB 0%,
+                #B0E2FF 30%,
+                #FFE4B5 70%,
+                #FFB6C1 100%
+            );
+            min-height: 100vh;
+            font-family: 'Segoe UI', 'Arial', sans-serif;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        /* 像素块状云朵效果 */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                /* 像素化云朵 */
+                radial-gradient(circle 40px at 20% 20%, white, transparent),
+                radial-gradient(circle 30px at 25% 18%, white, transparent),
+                radial-gradient(circle 35px at 18% 22%, white, transparent),
+                radial-gradient(circle 50px at 70% 30%, white, transparent),
+                radial-gradient(circle 40px at 75% 28%, white, transparent),
+                radial-gradient(circle 45px at 90% 15%, white, transparent),
+                radial-gradient(circle 35px at 40% 40%, white, transparent);
+            background-size: 100% 100%;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.8;
+            image-rendering: pixelated;
+        }
+        
+        .container {
+            position: relative;
+            z-index: 11;
+        }
+        
+        .navbar {
+            /* 粗糙的像素木板 */
+            background: 
+                repeating-linear-gradient(
+                    90deg,
+                    #8B6F47 0px,
+                    #8B6F47 8px,
+                    #9B7F57 8px,
+                    #9B7F57 16px
+                ),
+                linear-gradient(180deg, #8B7355 0%, #6F5639 100%) !important;
+            border-bottom: 4px solid #3D2817;
+            border-top: 4px solid rgba(255,255,255,0.3);
+            image-rendering: pixelated;
+        }
+        
+        .navbar-brand {
+            font-weight: bold;
+            color: #F4D03F !important;
+            font-size: 1.2rem;
+            font-family: 'Press Start 2P', 'Courier New', monospace;
+            letter-spacing: 2px;
+        }
+        
+        .nav-link {
+            color: rgba(255,255,255,0.95) !important;
+            transition: all 0.1s;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+        
+        .nav-link:hover {
+            color: #F4D03F !important;
+        }
+        
+        .main-container {
+            margin-top: 30px;
+            margin-bottom: 50px;
+        }
+        
+        .card {
+            border: 5px solid #8B6F47;
+            border-radius: 0;
+            transition: transform 0.2s;
+            background: 
+                repeating-linear-gradient(
+                    0deg,
+                    #FFF8DC 0px,
+                    #FFF8DC 3px,
+                    #FAEBD7 3px,
+                    #FAEBD7 6px
+                );
+            position: relative;
+            overflow: hidden;
+            image-rendering: pixelated;
+        }
+        
+        /* 粗糙木框装饰 */
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 12px;
+            background: 
+                repeating-linear-gradient(
+                    90deg,
+                    #654321 0px,
+                    #654321 8px,
+                    #7B5833 8px,
+                    #7B5833 16px
+                );
+        }
+        
+        .card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border: 2px dashed rgba(139, 111, 71, 0.2);
+            pointer-events: none;
+        }
+        
+        /* 可点击卡片样式 */
+        a .card:hover {
+            border-color: #654321;
+        }
+        
+        .btn-primary {
+            background: 
+                repeating-linear-gradient(
+                    45deg,
+                    #7CB342 0px,
+                    #7CB342 2px,
+                    #689F38 2px,
+                    #689F38 4px
+                );
+            border: 4px solid #3D5A1F;
+            border-radius: 0;
+            padding: 12px 28px;
+            transition: all 0.1s;
+            font-weight: bold;
+            color: white;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.85rem;
+        }
+        
+        .btn-primary:hover {
+            background: 
+                repeating-linear-gradient(
+                    45deg,
+                    #8BC34A 0px,
+                    #8BC34A 2px,
+                    #7CB342 2px,
+                    #7CB342 4px
+                );
+            color: white;
+        }
+        
+        .btn-success {
+            background: 
+                repeating-linear-gradient(
+                    45deg,
+                    #4CAF50 0px,
+                    #4CAF50 2px,
+                    #45A049 2px,
+                    #45A049 4px
+                );
+            border-radius: 0;
+            padding: 12px 28px;
+            border: 4px solid #2E7D32;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.85rem;
+        }
+        
+        .btn-outline-primary {
+            border: 4px solid #3D5A1F;
+            color: #3D5A1F;
+            background: #FFF8DC;
+            border-radius: 0;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.85rem;
+            padding: 12px 28px;
+        }
+        
+        .btn-outline-primary:hover {
+            background: 
+                repeating-linear-gradient(
+                    45deg,
+                    #7CB342 0px,
+                    #7CB342 2px,
+                    #689F38 2px,
+                    #689F38 4px
+                );
+            border-color: #3D5A1F;
+            color: white;
+        }
+        
+        .badge {
+            padding: 6px 12px;
+            border-radius: 0;
+            font-weight: bold;
+            border: 3px solid rgba(0,0,0,0.3);
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .badge.bg-primary {
+            background: #7CB342 !important;
+            border-color: #3D5A1F;
+        }
+        
+        .badge.bg-success {
+            background: #4CAF50 !important;
+            border-color: #2E7D32;
+        }
+        
+        .alert {
+            border: 4px solid;
+            border-radius: 0;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        
+        .alert-info {
+            border-color: #4682B4;
+            background: 
+                repeating-linear-gradient(
+                    45deg,
+                    #E3F2FD 0px,
+                    #E3F2FD 10px,
+                    #BBDEFB 10px,
+                    #BBDEFB 20px
+                );
+        }
+        
+        .alert-success {
+            border-color: #3D5A1F;
+            background: 
+                repeating-linear-gradient(
+                    45deg,
+                    #F1F8E9 0px,
+                    #F1F8E9 10px,
+                    #DCEDC8 10px,
+                    #DCEDC8 20px
+                );
+        }
+        
+        .game-card {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .game-card .card-body {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding-top: 20px;
+        }
+        
+        .game-card .card-title {
+            color: #654321;
+            font-weight: bold;
+            font-family: 'Press Start 2P', 'Courier New', monospace;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+        
+        .price-tag {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #F4A300;
+            font-family: 'Press Start 2P', 'Courier New', monospace;
+            letter-spacing: 1px;
+        }
+        
+        /* 金币图标样式 */
+        .price-tag::before {
+            content: '💰 ';
+            font-size: 1.3rem;
+        }
+        
+        .category-badge {
+            margin: 3px;
+        }
+        
+        /* 粗糙文本样式 */
+        body, p, small, .card-text {
+            font-family: 'Courier New', monospace;
+            font-weight: 500;
+        }
+        
+        
+        /* 导航链接活跃状态 */
+        .nav-link.active {
+            color: #F4D03F !important;
+            background: rgba(244, 208, 63, 0.2);
+        }
+        
+        /* 像素化输入框 */
+        .form-control, .form-select {
+            border: 4px solid #8B6F47;
+            border-radius: 0;
+            padding: 12px;
+            background: #FFFAF0;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: #3D5A1F;
+            background: white;
+            outline: none;
+        }
+        
+        /* 像素化下拉菜单 */
+        .dropdown-menu {
+            border: 4px solid #654321;
+            border-radius: 0;
+            background: #FFF8DC;
+        }
+        
+        .dropdown-item {
+            font-weight: bold;
+            border-radius: 0;
+            margin: 4px;
+            border: 2px solid transparent;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .dropdown-item:hover {
+            background: #7CB342;
+            color: white;
+            border-color: #3D5A1F;
+        }
+        
+        /* 粗糙像素标题 */
+        h1, h2, h3, h4, h5 {
+            font-family: 'Press Start 2P', 'Courier New', monospace;
+            font-weight: bold;
+            color: #654321;
+            letter-spacing: 2px;
+        }
+        
+        h1 { font-size: 1.5rem; }
+        h2 { font-size: 1.2rem; }
+        h3 { font-size: 1rem; }
+        h4 { font-size: 0.9rem; }
+        h5 { font-size: 0.85rem; }
+        
+        /* 按钮通用样式 */
+        .btn {
+            font-weight: 600;
+        }
+        
+        .btn-light {
+            background: #FFF8DC;
+            border: 4px solid #8B6F47;
+            border-radius: 0;
+            color: #654321;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.85rem;
+            padding: 12px 28px;
+        }
+        
+        .btn-light:hover {
+            background: #FFFACD;
+            color: #654321;
+        }
+        
+        /* 分类徽章样式 */
+        .category-badge {
+            background: #6495ED !important;
+            border: 3px solid #4169E1 !important;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="index.php">
+                <i class="bi bi-controller"></i> Gauniv
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.php">
+                            <i class="bi bi-house"></i> 首页
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="games.php">
+                            <i class="bi bi-collection"></i> 游戏商店
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="categories.php">
+                            <i class="bi bi-tags"></i> 分类
+                        </a>
+                    </li>
+                    <?php if (is_logged_in()): ?>
+                    <li class="nav-item">
+                        <a class="nav-link" href="library.php">
+                            <i class="bi bi-bookmark-star"></i> 我的游戏库
+                        </a>
+                    </li>
+                    <?php endif; ?>
+                </ul>
+                <ul class="navbar-nav">
+                    <?php if (is_logged_in()): 
+                        $user = get_logged_in_user();
+                    ?>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" 
+                               data-bs-toggle="dropdown">
+                                <i class="bi bi-person-circle"></i> 
+                                <?php echo htmlspecialchars($user['firstName'] ?? $user['email']); ?>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="profile.php">个人信息</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="logout.php">退出登录</a></li>
+                            </ul>
+                        </li>
+                    <?php else: ?>
+                        <li class="nav-item">
+                            <a class="nav-link" href="login.php">
+                                <i class="bi bi-box-arrow-in-right"></i> 登录
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="register.php">
+                                <i class="bi bi-person-plus"></i> 注册
+                            </a>
+                        </li>
+                    <?php endif; ?>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    
+    <div class="container main-container">
+        <?php if (isset($_SESSION['message'])): ?>
+            <div class="alert alert-<?php echo $_SESSION['message_type'] ?? 'info'; ?> alert-dismissible fade show" role="alert">
+                <?php 
+                    echo $_SESSION['message']; 
+                    unset($_SESSION['message']);
+                    unset($_SESSION['message_type']);
+                ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        <?php endif; ?>
