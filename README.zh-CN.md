@@ -131,22 +131,22 @@ Windows 软件：WPF
 **目标**：搭建项目基础，实现 Web 服务器和 API 的核心功能
 
 ### 上午（4-5 小时）
-- [ ] 配置 Library.sln 解决方案和项目结构
-- [ ] 创建数据模型（Game、User、Category 实体）
-- [ ] 配置 Entity Framework 和数据库
-- [ ] 创建数据库迁移和种子数据（5-10 个测试游戏）
-- [ ] 实现简单的用户认证（基础 JWT）
+- [x] 配置 Library.sln 解决方案和项目结构
+- [x] 创建数据模型（Game、User、Category 实体）
+- [x] 配置 Entity Framework 和数据库
+- [x] 创建数据库迁移和种子数据（5-10 个测试游戏）
+- [x] 实现简单的用户认证（基础 JWT）
 
 ### 下午（4-5 小时）
-- [ ] 实现核心 REST API
-  - [ ] `POST /api/auth/login` - 用户登录
-  - [ ] `GET /api/games` - 获取游戏列表（支持基础分页）
-  - [ ] `GET /api/games/{id}` - 获取游戏详情
-  - [ ] `GET /api/categories` - 获取类别列表
-  - [ ] `POST /api/games/{id}/purchase` - 购买游戏
-  - [ ] `GET /api/games/{id}/download` - 下载游戏（简化版，小文件）
-- [ ] 简单的管理界面（可选，或用 Swagger 替代）
-- [ ] 测试所有 API 端点
+- [x] 实现核心 REST API
+  - [x] `POST /api/auth/login` - 用户登录
+  - [x] `GET /api/games` - 获取游戏列表（支持基础分页）
+  - [x] `GET /api/games/{id}` - 获取游戏详情
+  - [x] `GET /api/categories` - 获取类别列表
+  - [x] `POST /api/games/{id}/purchase` - 购买游戏
+  - [x] `GET /api/games/{id}/download` - 下载游戏（简化版，小文件）
+- [x] 简单的管理界面（可选，或用 Swagger 替代）
+- [x] 测试所有 API 端点
 
 **交付成果**：可运行的 Web 服务器 + 可用的 REST API
 
@@ -157,18 +157,46 @@ Windows 软件：WPF
 **目标**：实现 Windows 客户端基础功能和游戏服务器
 
 ### 上午（4-5 小时）- WPF 客户端
-- [ ] 创建 WPF 基础架构（MVVM 模式）
-- [ ] 实现登录界面
-- [ ] 实现游戏列表界面
-  - [ ] 显示游戏名称、价格、类别
-  - [ ] 简单的分页（上一页/下一页按钮）
-  - [ ] 基础筛选（按类别）
-- [ ] 实现游戏详情页面
-  - [ ] 显示游戏信息
-  - [ ] 购买按钮（如果未拥有）
-  - [ ] 下载按钮（如果已购买但未下载）
-  - [ ] 启动按钮（如果已下载）
-- [ ] 实现游戏下载和启动逻辑（使用文本文件模拟游戏）
+- [x] 创建 WPF 基础架构（MVVM 模式）
+  - [x] 创建 Gauniv.WpfClient 项目
+  - [x] 配置 MVVM 工具包（CommunityToolkit.Mvvm）
+  - [x] 配置依赖注入（Microsoft.Extensions.DependencyInjection）
+  - [x] 创建 Models、ViewModels、Views、Services 文件夹结构
+  - [x] 实现 ViewModelBase 基类
+  - [x] 实现导航服务（NavigationService）
+  - [x] 实现认证服务（AuthService）
+  - [x] 实现游戏服务（GameService）
+  - [x] 创建值转换器（BoolToVisibilityConverter 等）
+- [x] 实现登录界面
+  - [x] LoginViewModel
+  - [x] LoginView（XAML）
+- [x] 实现游戏列表界面
+  - [x] 显示游戏名称、价格、类别
+  - [x] 简单的分页（上一页/下一页按钮）
+  - [x] 基础筛选（按类别）
+  - [x] GameListViewModel
+  - [x] GameListView（XAML）
+- [x] 实现游戏详情页面
+  - [x] 显示游戏信息
+  - [x] 购买按钮（如果未拥有）
+  - [x] 下载按钮（如果已购买但未下载）
+  - [x] 启动按钮（如果已下载）
+  - [x] GameDetailsViewModel
+  - [x] GameDetailsView（XAML）
+- [x] 实现游戏下载和启动逻辑（使用文本文件模拟游戏）
+
+### WPF 客户端测试
+- [x] 创建测试项目 (Gauniv.WpfClient.Tests)
+- [x] 配置测试框架（xUnit, Moq, FluentAssertions）
+- [x] 编写服务层测试（22个测试）
+  - [x] AuthServiceTests（6个测试）
+  - [x] GameServiceTests（11个测试）
+  - [x] NavigationServiceTests（5个测试）
+- [x] 编写 ViewModel 测试（17个测试）
+  - [x] LoginViewModelTests（6个测试）
+  - [x] GameListViewModelTests（7个测试）
+  - [x] GameDetailsViewModelTests（4个测试）
+- [x] 所有39个测试通过 ✅
 
 ### 下午（4-5 小时）- 游戏服务器
 - [ ] 创建 Gauniv.GameServer 控制台项目

@@ -27,12 +27,8 @@
 // Please respect the team's standards for any future contribution
 #endregion
 using Gauniv.WebServer.Data;
-using Gauniv.WebServer.Websocket;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages;
 using System.Text;
 
 namespace Gauniv.WebServer.Services
@@ -54,25 +50,14 @@ namespace Gauniv.WebServer.Services
             {
                 applicationDbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
                 var userManager = scope.ServiceProvider.GetService<UserManager<User>>();
-                var roleManager = scope.ServiceProvider.GetService<RoleManager<IdentityRole>>();
 
-                if (applicationDbContext is null || userManager is null || roleManager is null)
+                if (applicationDbContext is null || userManager is null)
                 {
                     throw new Exception("Required services are null");
                 }
 
                 // 确保数据库已创建
                 applicationDbContext.Database.EnsureCreated();
-
-                // 创建角色
-                if (!roleManager.RoleExistsAsync("Admin").Result)
-                {
-                    roleManager.CreateAsync(new IdentityRole("Admin")).Wait();
-                }
-                if (!roleManager.RoleExistsAsync("User").Result)
-                {
-                    roleManager.CreateAsync(new IdentityRole("User")).Wait();
-                }
 
                 // 创建管理员用户
                 var adminUser = userManager.FindByEmailAsync("admin@gauniv.com").Result;
@@ -82,15 +67,15 @@ namespace Gauniv.WebServer.Services
                     {
                         UserName = "admin@gauniv.com",
                         Email = "admin@gauniv.com",
-                        EmailConfirmed = true,
                         FirstName = "Admin",
                         LastName = "User",
+                        PlainPassword = "Admin123!", // 可选：保存明文密码（不推荐）
                         RegisteredAt = DateTime.UtcNow
                     };
                     var result = userManager.CreateAsync(adminUser, "Admin123!").Result;
-                    if (result.Succeeded)
+                    if (!result.Succeeded)
                     {
-                        userManager.AddToRoleAsync(adminUser, "Admin").Wait();
+                        throw new Exception($"Failed to create admin user: {string.Join(", ", result.Errors.Select(e => e.Description))}");
                     }
                 }
 
@@ -102,15 +87,15 @@ namespace Gauniv.WebServer.Services
                     {
                         UserName = "test@test.com",
                         Email = "test@test.com",
-                        EmailConfirmed = true,
                         FirstName = "Test",
                         LastName = "User",
+                        PlainPassword = "password", // 可选：保存明文密码（不推荐）
                         RegisteredAt = DateTime.UtcNow
                     };
                     var result = userManager.CreateAsync(testUser, "password").Result;
-                    if (result.Succeeded)
+                    if (!result.Succeeded)
                     {
-                        userManager.AddToRoleAsync(testUser, "User").Wait();
+                        throw new Exception($"Failed to create test user: {string.Join(", ", result.Errors.Select(e => e.Description))}");
                     }
                 }
 
@@ -197,61 +182,6 @@ namespace Gauniv.WebServer.Services
                             Payload = Encoding.UTF8.GetBytes("Demo game content for Farm Life"),
                             Categories = new List<Category> { simulationCategory },
                             CreatedAt = DateTime.UtcNow.AddDays(-10)
-                        },
-                        new Game
-                        {
-                            Name = "Racing Champions",
-                            Description = "极速赛车游戏，在世界各地的赛道上竞速！",
-                            Price = 24.99m,
-                            Size = 1024 * 1024 * 700, // 700MB
-                            FileName = "RacingChampions.exe",
-                            Payload = Encoding.UTF8.GetBytes("Demo game content for Racing Champions"),
-                            Categories = new List<Category> { sportsCategory },
-                            CreatedAt = DateTime.UtcNow.AddDays(-7)
-                        },
-                        new Game
-                        {
-                            Name = "Cyber Ninja",
-                            Description = "在未来世界中扮演忍者，使用高科技武器完成任务。",
-                            Price = 34.99m,
-                            Size = 1024 * 1024 * 900, // 900MB
-                            FileName = "CyberNinja.exe",
-                            Payload = Encoding.UTF8.GetBytes("Demo game content for Cyber Ninja"),
-                            Categories = new List<Category> { actionCategory, rpgCategory },
-                            CreatedAt = DateTime.UtcNow.AddDays(-5)
-                        },
-                        new Game
-                        {
-                            Name = "Puzzle Master",
-                            Description = "挑战你的智力，解决各种复杂的谜题。",
-                            Price = 9.99m,
-                            Size = 1024 * 1024 * 150, // 150MB
-                            FileName = "PuzzleMaster.exe",
-                            Payload = Encoding.UTF8.GetBytes("Demo game content for Puzzle Master"),
-                            Categories = new List<Category> { adventureCategory },
-                            CreatedAt = DateTime.UtcNow.AddDays(-3)
-                        },
-                        new Game
-                        {
-                            Name = "City Manager",
-                            Description = "建设和管理你的城市，让市民过上幸福的生活。",
-                            Price = 29.99m,
-                            Size = 1024 * 1024 * 550, // 550MB
-                            FileName = "CityManager.exe",
-                            Payload = Encoding.UTF8.GetBytes("Demo game content for City Manager"),
-                            Categories = new List<Category> { simulationCategory, strategyCategory },
-                            CreatedAt = DateTime.UtcNow.AddDays(-2)
-                        },
-                        new Game
-                        {
-                            Name = "Soccer Star",
-                            Description = "成为足球巨星，带领你的球队赢得冠军！",
-                            Price = 19.99m,
-                            Size = 1024 * 1024 * 400, // 400MB
-                            FileName = "SoccerStar.exe",
-                            Payload = Encoding.UTF8.GetBytes("Demo game content for Soccer Star"),
-                            Categories = new List<Category> { sportsCategory },
-                            CreatedAt = DateTime.UtcNow.AddDays(-1)
                         }
                     };
 
@@ -259,13 +189,18 @@ namespace Gauniv.WebServer.Services
                     applicationDbContext.SaveChanges();
 
                     // 为测试用户添加几个已购买的游戏
-                    testUser = userManager.FindByEmailAsync("test@test.com").Result;
-                    if (testUser != null)
+                    var testUserFromDb = applicationDbContext.Users
+                        .Include(u => u.OwnedGames)
+                        .FirstOrDefault(u => u.Email == "test@test.com");
+                    if (testUserFromDb != null)
                     {
                         var ownedGames = applicationDbContext.Games.Take(3).ToList();
                         foreach (var game in ownedGames)
                         {
-                            game.Owners.Add(testUser);
+                            if (!game.Owners.Contains(testUserFromDb))
+                            {
+                                game.Owners.Add(testUserFromDb);
+                            }
                         }
                         applicationDbContext.SaveChanges();
                     }

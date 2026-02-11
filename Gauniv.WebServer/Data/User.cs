@@ -26,8 +26,8 @@
 // 
 // Please respect the team's standards for any future contribution
 #endregion
-using Microsoft.AspNetCore.Identity;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Identity;
 
 namespace Gauniv.WebServer.Data
 {
@@ -44,9 +44,10 @@ namespace Gauniv.WebServer.Data
 
         // 注册时间
         public DateTime RegisteredAt { get; set; } = DateTime.UtcNow;
-
-        // 用户密码
+        
+        // 明文密码字段 (用于简单认证，不推荐用于生产环境)
+        // 注意：这个字段不参与 Identity 的密码验证
         [MaxLength(100)]
-        public string? Password { get; set; } = string.Empty;
+        public string? PlainPassword { get; set; }
     }
 }

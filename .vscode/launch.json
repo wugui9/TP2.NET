@@ -1,0 +1,119 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "启动 WebServer",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/Gauniv.WebServer/bin/Debug/net9.0/Gauniv.WebServer.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/Gauniv.WebServer",
+            "stopAtEntry": false,
+            "serverReadyAction": {
+                "action": "openExternally",
+                "pattern": "\\bNow listening on:\\s+(https?://\\S+)",
+                "uriFormat": "%s"
+            },
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development"
+            },
+            "sourceFileMap": {
+                "/Views": "${workspaceFolder}/Gauniv.WebServer/Views"
+            }
+        },
+        {
+            "name": "删除数据库并重建",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "delete-and-rebuild-database",
+            "program": "${workspaceFolder}/Gauniv.WebServer/bin/Debug/net9.0/Gauniv.WebServer.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/Gauniv.WebServer",
+            "stopAtEntry": false,
+            "serverReadyAction": {
+                "action": "openExternally",
+                "pattern": "\\bNow listening on:\\s+(https?://\\S+)",
+                "uriFormat": "%s"
+            },
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development"
+            },
+            "sourceFileMap": {
+                "/Views": "${workspaceFolder}/Gauniv.WebServer/Views"
+            }
+        },
+        {
+            "name": "启动 Client",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build-client",
+            "program": "${workspaceFolder}/Gauniv.Client/bin/Debug/net9.0/Gauniv.Client.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/Gauniv.Client",
+            "console": "integratedTerminal",
+            "stopAtEntry": false
+        },
+        {
+            "name": "运行所有测试 (Run All Tests)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build-tests",
+            "program": "dotnet",
+            "args": [
+                "test",
+                "${workspaceFolder}/Gauniv.WebServer.Tests/Gauniv.WebServer.Tests.csproj",
+                "--verbosity",
+                "normal",
+                "--no-build"
+            ],
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "stopAtEntry": false,
+            "internalConsoleOptions": "openOnSessionStart"
+        },
+        {
+            "name": "调试所有测试 (Debug All Tests)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build-tests",
+            "program": "${workspaceFolder}/Gauniv.WebServer.Tests/bin/Debug/net9.0/Gauniv.WebServer.Tests.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/Gauniv.WebServer.Tests",
+            "console": "integratedTerminal",
+            "stopAtEntry": false,
+            "internalConsoleOptions": "openOnSessionStart"
+        },
+        {
+            "name": "运行单个测试 (Run Single Test)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "test-single",
+            "program": "dotnet",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "stopAtEntry": false,
+            "internalConsoleOptions": "openOnSessionStart"
+        },
+        {
+            "name": "运行测试并查看覆盖率",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "test-with-coverage",
+            "program": "dotnet",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "stopAtEntry": false,
+            "internalConsoleOptions": "openOnSessionStart"
+        }
+    ],
+    "compounds": [
+        {
+            "name": "启动 WebServer + Client",
+            "configurations": ["启动 WebServer", "启动 Client"],
+            "stopAll": true
+        }
+    ]
+}
