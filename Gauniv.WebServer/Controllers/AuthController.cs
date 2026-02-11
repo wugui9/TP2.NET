@@ -30,9 +30,6 @@ namespace Gauniv.WebServer.Controllers
             _signInManager = signInManager;
         }
 
-        /// <summary>
-        /// 登录 - 使用 Identity 验证
-        /// </summary>
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequestDto request)
         {
@@ -41,15 +38,12 @@ namespace Gauniv.WebServer.Controllers
                 return BadRequest(ModelState);
             }
 
-            // 根据 Email 查找用户
             var local_user = await _userManager.FindByEmailAsync(request.Email);
 
             if (local_user == null)
             {
                 return Unauthorized(new { message = "Invalid email or password" });
             }
-
-            // 使用 SignInManager 验证密码
             var local_result = await _signInManager.PasswordSignInAsync(
                 local_user.UserName ?? local_user.Email,
                 request.Password,
@@ -62,8 +56,6 @@ namespace Gauniv.WebServer.Controllers
             }
 
             _logger.LogInformation($"User {request.Email} logged in successfully");
-
-            // 在 Session 中保存用户信息
             HttpContext.Session.SetString("UserId", local_user.Id);
             HttpContext.Session.SetString("UserEmail", local_user.Email ?? string.Empty);
 
@@ -77,9 +69,6 @@ namespace Gauniv.WebServer.Controllers
             });
         }
 
-        /// <summary>
-        /// 登出
-        /// </summary>
         [HttpPost("logout")]
         public async Task<IActionResult> Logout()
         {
@@ -88,9 +77,6 @@ namespace Gauniv.WebServer.Controllers
             return Ok(new { message = "Logout successful" });
         }
 
-        /// <summary>
-        /// 获取当前登录用户信息
-        /// </summary>
         [HttpGet("me")]
         public async Task<IActionResult> GetCurrentUser()
         {
@@ -115,9 +101,6 @@ namespace Gauniv.WebServer.Controllers
             });
         }
 
-        /// <summary>
-        /// 注册新用户
-        /// </summary>
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterRequestDto request)
         {
@@ -126,7 +109,6 @@ namespace Gauniv.WebServer.Controllers
                 return BadRequest(ModelState);
             }
 
-            // 检查邮箱是否已存在
             var local_existingUser = await _userManager.FindByEmailAsync(request.Email);
 
             if (local_existingUser != null)
@@ -134,7 +116,6 @@ namespace Gauniv.WebServer.Controllers
                 return BadRequest(new { message = "Email already exists" });
             }
 
-            // 创建新用户
             var local_newUser = new User
             {
                 UserName = request.Email,
@@ -142,10 +123,9 @@ namespace Gauniv.WebServer.Controllers
                 FirstName = request.FirstName,
                 LastName = request.LastName,
                 RegisteredAt = DateTime.UtcNow,
-                PlainPassword = request.Password // 可选：保存明文密码（不推荐）
+                PlainPassword = request.Password 
             };
 
-            // 使用 UserManager 创建用户（会自动哈希密码）
             var local_result = await _userManager.CreateAsync(local_newUser, request.Password);
 
             if (!local_result.Succeeded)
