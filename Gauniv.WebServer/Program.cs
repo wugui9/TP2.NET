@@ -153,3 +153,6 @@ app.UseSwaggerUI(options =>
 app.MapHub<OnlineHub>("/online");
 
 app.Run();
+
+// Make the implicit Program class public so test projects can access it
+public partial class Program { }
