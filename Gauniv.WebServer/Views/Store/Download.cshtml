@@ -1,0 +1,58 @@
+@model Gauniv.WebServer.Models.StoreDownloadViewModel
+@using Gauniv.WebServer.Controllers
+@{
+    ViewData["Title"] = "下载 " + Model.Game.Name;
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow-lg">
+            <div class="card-body text-center p-5">
+                <i class="bi bi-download" style="font-size: 5rem; color: #27ae60;"></i>
+
+                <h1 class="mt-4 mb-3">下载游戏</h1>
+                <h3 class="text-primary mb-4">@Model.Game.Name</h3>
+
+                <div class="alert alert-info">
+                    <h5><i class="bi bi-info-circle"></i> 下载信息</h5>
+                    <hr>
+                    <div class="text-start">
+                        <p><strong>文件名:</strong> @(Model.Game.FileName ?? "N/A")</p>
+                        <p><strong>文件大小:</strong> @StoreController.FormatSize(Model.Game.Size)</p>
+                        <p class="mb-0"><strong>类别:</strong>
+                            @string.Join(", ", Model.Game.Categories.Select(c => c.Name))
+                        </p>
+                    </div>
+                </div>
+
+                <div class="d-grid gap-3 mt-4">
+                    <a asp-controller="Store" asp-action="StartDownload" asp-route-id="@Model.GameId"
+                       class="btn btn-success btn-lg">
+                        <i class="bi bi-download"></i> 开始下载
+                    </a>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <a asp-controller="Store" asp-action="Game" asp-route-id="@Model.GameId"
+                               class="btn btn-outline-primary w-100">
+                                <i class="bi bi-info-circle"></i> 查看详情
+                            </a>
+                        </div>
+                        <div class="col-md-6">
+                            <a asp-controller="Store" asp-action="Library" class="btn btn-outline-secondary w-100">
+                                <i class="bi bi-arrow-left"></i> 返回游戏库
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <small class="text-muted">
+                        <i class="bi bi-shield-check"></i> 下载的文件是安全的 |
+                        <i class="bi bi-arrow-clockwise"></i> 您可以随时重新下载
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

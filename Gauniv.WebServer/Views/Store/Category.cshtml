@@ -1,0 +1,111 @@
+@model Gauniv.WebServer.Models.StoreCategoryDetailViewModel
+@using Gauniv.WebServer.Controllers
+@{
+    ViewData["Title"] = Model.Category.Name + " - 分类";
+}
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none;">
+            <div class="card-body text-white">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-2" style="background: transparent;">
+                        <li class="breadcrumb-item">
+                            <a asp-controller="Store" asp-action="Categories" class="text-white">
+                                <i class="bi bi-tags"></i> 分类
+                            </a>
+                        </li>
+                        <li class="breadcrumb-item active text-white" aria-current="page">
+                            @Model.Category.Name
+                        </li>
+                    </ol>
+                </nav>
+
+                <h1 class="mb-2">
+                    <i class="bi bi-folder"></i>
+                    @Model.Category.Name
+                </h1>
+
+                <p class="lead mb-0">
+                    @Model.Category.Description
+                </p>
+
+                <div class="mt-3">
+                    <span class="badge bg-light text-dark" style="font-size: 1rem;">
+                        @Model.Category.GameCount 款游戏
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    @if (!Model.Games.Any())
+    {
+        <div class="col-12">
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle"></i> 此分类下暂无游戏
+            </div>
+            <a asp-controller="Store" asp-action="Categories" class="btn btn-outline-primary">
+                <i class="bi bi-arrow-left"></i> 返回分类列表
+            </a>
+        </div>
+    }
+    else
+    {
+        @foreach (var game in Model.Games)
+        {
+            <div class="col-md-4 col-lg-3 mb-4">
+                <div class="card game-card h-100">
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title">@game.Name</h5>
+
+                        @if (game.IsOwned)
+                        {
+                            <span class="badge bg-success mb-2">
+                                <i class="bi bi-check-circle"></i> 已拥有
+                            </span>
+                        }
+
+                        <div class="mb-2">
+                            @foreach (var catName in game.CategoryNames)
+                            {
+                                <span class="badge bg-secondary category-badge">@catName</span>
+                            }
+                        </div>
+
+                        <div class="mb-2">
+                            <small class="text-muted">
+                                <i class="bi bi-hdd"></i> @StoreController.FormatSize(game.Size)
+                            </small>
+                        </div>
+
+                        <div class="mb-3">
+                            <small class="text-muted">
+                                <i class="bi bi-clock"></i> @StoreController.FormatDate(game.CreatedAt)
+                            </small>
+                        </div>
+
+                        <div class="mt-auto">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="price-tag">@StoreController.FormatPrice(game.Price)</span>
+                                <a asp-controller="Store" asp-action="Game" asp-route-id="@game.Id" class="btn btn-primary btn-sm">
+                                    查看详情
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <a asp-controller="Store" asp-action="Categories" class="btn btn-outline-primary">
+            <i class="bi bi-arrow-left"></i> 返回分类列表
+        </a>
+    </div>
+</div>
