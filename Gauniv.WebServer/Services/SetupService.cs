@@ -117,6 +117,7 @@ namespace Gauniv.WebServer.Services
                         throw new Exception($"Failed to create p1 user: {string.Join(", ", result.Errors.Select(e => e.Description))}");
                     }
                 }
+                EnsureSeedPassword(userManager, p1User, "password", "p1@test.com");
 
                 var p2User = userManager.FindByEmailAsync("p2@test.com").Result;
                 if (p2User == null)
@@ -136,6 +137,7 @@ namespace Gauniv.WebServer.Services
                         throw new Exception($"Failed to create p2 user: {string.Join(", ", result.Errors.Select(e => e.Description))}");
                     }
                 }
+                EnsureSeedPassword(userManager, p2User, "password", "p2@test.com");
 
                 var p3User = userManager.FindByEmailAsync("p3@test.com").Result;
                 if (p3User == null)
@@ -155,6 +157,7 @@ namespace Gauniv.WebServer.Services
                         throw new Exception($"Failed to create p3 user: {string.Join(", ", result.Errors.Select(e => e.Description))}");
                     }
                 }
+                EnsureSeedPassword(userManager, p3User, "password", "p3@test.com");
 
                 var p4User = userManager.FindByEmailAsync("p4@test.com").Result;
                 if (p4User == null)
@@ -174,6 +177,7 @@ namespace Gauniv.WebServer.Services
                         throw new Exception($"Failed to create p4 user: {string.Join(", ", result.Errors.Select(e => e.Description))}");
                     }
                 }
+                EnsureSeedPassword(userManager, p4User, "password", "p4@test.com");
 
                 // 创建游戏类别
                 if (!applicationDbContext.Categories.Any())
@@ -289,6 +293,23 @@ namespace Gauniv.WebServer.Services
         public Task StopAsync(CancellationToken cancellationToken)
         {
             return Task.CompletedTask;
+        }
+
+        private static void EnsureSeedPassword(UserManager<User> userManager, User user, string password, string accountLabel)
+        {
+            user.PlainPassword = password;
+            var local_update = userManager.UpdateAsync(user).Result;
+            if (!local_update.Succeeded)
+            {
+                throw new Exception($"Failed to update plain password for {accountLabel}: {string.Join(", ", local_update.Errors.Select(e => e.Description))}");
+            }
+
+            var local_token = userManager.GeneratePasswordResetTokenAsync(user).Result;
+            var local_reset = userManager.ResetPasswordAsync(user, local_token, password).Result;
+            if (!local_reset.Succeeded)
+            {
+                throw new Exception($"Failed to reset password for {accountLabel}: {string.Join(", ", local_reset.Errors.Select(e => e.Description))}");
+            }
         }
     }
 }
