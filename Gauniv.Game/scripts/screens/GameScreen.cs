@@ -133,9 +133,21 @@ public partial class GameScreen : Control
         {
             var button = _cellButtons[i];
             button.Disabled = !canAct;
-            button.Modulate = canAct
-                ? new Color(0.86f, 0.97f, 1.0f)
-                : new Color(0.64f, 0.72f, 0.82f);
+            button.Text = " ";
+            var hasTarget = targetRow.HasValue && targetCol.HasValue;
+            if (hasTarget)
+            {
+                // Dim non-target cells so the selected target pops out more.
+                button.Modulate = canAct
+                    ? new Color(0.44f, 0.52f, 0.60f)
+                    : new Color(0.40f, 0.46f, 0.54f);
+            }
+            else
+            {
+                button.Modulate = canAct
+                    ? new Color(0.86f, 0.97f, 1.0f)
+                    : new Color(0.64f, 0.72f, 0.82f);
+            }
             button.Scale = Vector2.One;
         }
 
@@ -146,8 +158,9 @@ public partial class GameScreen : Control
             {
                 _currentTargetIndex = index;
                 var targetColor = canAct
-                    ? new Color(0.70f, 1.0f, 0.80f)
-                    : new Color(0.78f, 0.90f, 1.0f);
+                    ? new Color(1.0f, 0.28f, 0.28f)
+                    : new Color(1.0f, 0.66f, 0.24f);
+                _cellButtons[index].Text = "X";
                 _cellButtons[index].Modulate = targetColor;
                 StartTargetPulse(index, targetColor);
             }
@@ -162,16 +175,18 @@ public partial class GameScreen : Control
         }
 
         var pulseColor = new Color(
-            Mathf.Clamp(baseColor.R + 0.14f, 0, 1),
-            Mathf.Clamp(baseColor.G + 0.10f, 0, 1),
-            Mathf.Clamp(baseColor.B + 0.10f, 0, 1),
+            Mathf.Clamp(baseColor.R + 0.18f, 0, 1),
+            Mathf.Clamp(baseColor.G + 0.18f, 0, 1),
+            Mathf.Clamp(baseColor.B + 0.18f, 0, 1),
             1f);
 
         _targetPulseTween?.Kill();
         _targetPulseTween = CreateTween();
         _targetPulseTween.SetLoops();
-        _targetPulseTween.TweenProperty(_cellButtons[index], "modulate", pulseColor, 0.28f);
-        _targetPulseTween.TweenProperty(_cellButtons[index], "modulate", baseColor, 0.28f);
+        _targetPulseTween.TweenProperty(_cellButtons[index], "modulate", pulseColor, 0.20f);
+        _targetPulseTween.Parallel().TweenProperty(_cellButtons[index], "scale", new Vector2(1.10f, 1.10f), 0.20f);
+        _targetPulseTween.TweenProperty(_cellButtons[index], "modulate", baseColor, 0.20f);
+        _targetPulseTween.Parallel().TweenProperty(_cellButtons[index], "scale", Vector2.One, 0.20f);
     }
 
     private void ClearTargetPulse()
@@ -182,6 +197,7 @@ public partial class GameScreen : Control
         if (_currentTargetIndex >= 0 && _currentTargetIndex < _cellButtons.Count)
         {
             _cellButtons[_currentTargetIndex].Scale = Vector2.One;
+            _cellButtons[_currentTargetIndex].Text = " ";
         }
 
         _currentTargetIndex = -1;
