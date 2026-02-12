@@ -1,0 +1,85 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/screens/LobbyScreen.cs" id="1"]
+
+[node name="LobbyScreen" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1")
+
+[node name="Root" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Stack" type="VBoxContainer" parent="Root"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="HeaderLabel" type="Label" parent="Root/Stack"]
+layout_mode = 2
+text = "Room"
+
+[node name="PhaseLabel" type="Label" parent="Root/Stack"]
+layout_mode = 2
+text = "Phase"
+
+[node name="Lists" type="HBoxContainer" parent="Root/Stack"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="PlayersPane" type="VBoxContainer" parent="Root/Stack/Lists"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="PlayersTitle" type="Label" parent="Root/Stack/Lists/PlayersPane"]
+layout_mode = 2
+text = "Players"
+
+[node name="PlayersList" type="ItemList" parent="Root/Stack/Lists/PlayersPane"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ObserversPane" type="VBoxContainer" parent="Root/Stack/Lists"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ObserversTitle" type="Label" parent="Root/Stack/Lists/ObserversPane"]
+layout_mode = 2
+text = "Observers"
+
+[node name="ObserversList" type="ItemList" parent="Root/Stack/Lists/ObserversPane"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ActionRow" type="HBoxContainer" parent="Root/Stack"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="ReadyCheck" type="CheckBox" parent="Root/Stack/ActionRow"]
+layout_mode = 2
+text = "Ready"
+
+[node name="ReadyButton" type="Button" parent="Root/Stack/ActionRow"]
+layout_mode = 2
+text = "Send Ready"
+
+[node name="OpenGameButton" type="Button" parent="Root/Stack/ActionRow"]
+layout_mode = 2
+text = "Open Game"
+
+[node name="LeaveButton" type="Button" parent="Root/Stack/ActionRow"]
+layout_mode = 2
+text = "Leave Room"

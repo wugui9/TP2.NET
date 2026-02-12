@@ -1,0 +1,51 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/Main.cs" id="1"]
+[ext_resource type="Script" path="res://scripts/NetworkClient.cs" id="2"]
+
+[node name="Main" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1")
+
+[node name="Root" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 12.0
+offset_top = 12.0
+offset_right = -12.0
+offset_bottom = -12.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Stack" type="VBoxContainer" parent="Root"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="TitleLabel" type="Label" parent="Root/Stack"]
+layout_mode = 2
+text = "Gauniv Game Client"
+
+[node name="StatusLabel" type="Label" parent="Root/Stack"]
+layout_mode = 2
+text = "Status:"
+
+[node name="ScreenHost" type="MarginContainer" parent="Root/Stack"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="LogOutput" type="RichTextLabel" parent="Root/Stack"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 140)
+size_flags_vertical = 3
+scroll_following = true
+text = "Log:"
+
+[node name="NetworkClient" type="Node" parent="."]
+script = ExtResource("2")

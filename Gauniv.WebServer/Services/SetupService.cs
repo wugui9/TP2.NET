@@ -99,6 +99,82 @@ namespace Gauniv.WebServer.Services
                     }
                 }
 
+                var p1User = userManager.FindByEmailAsync("p1@test.com").Result;
+                if (p1User == null)
+                {
+                    p1User = new User()
+                    {
+                        UserName = "p1@test.com",
+                        Email = "p1@test.com",
+                        FirstName = "P1",
+                        LastName = "User",
+                        PlainPassword = "password",
+                        RegisteredAt = DateTime.UtcNow
+                    };
+                    var result = userManager.CreateAsync(p1User, "password").Result;
+                    if (!result.Succeeded)
+                    {
+                        throw new Exception($"Failed to create p1 user: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+                    }
+                }
+
+                var p2User = userManager.FindByEmailAsync("p2@test.com").Result;
+                if (p2User == null)
+                {
+                    p2User = new User()
+                    {
+                        UserName = "p2@test.com",
+                        Email = "p2@test.com",
+                        FirstName = "P2",
+                        LastName = "User",
+                        PlainPassword = "password",
+                        RegisteredAt = DateTime.UtcNow
+                    };
+                    var result = userManager.CreateAsync(p2User, "password").Result;
+                    if (!result.Succeeded)
+                    {
+                        throw new Exception($"Failed to create p2 user: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+                    }
+                }
+
+                var p3User = userManager.FindByEmailAsync("p3@test.com").Result;
+                if (p3User == null)
+                {
+                    p3User = new User()
+                    {
+                        UserName = "p3@test.com",
+                        Email = "p3@test.com",
+                        FirstName = "P3",
+                        LastName = "User",
+                        PlainPassword = "password",
+                        RegisteredAt = DateTime.UtcNow
+                    };
+                    var result = userManager.CreateAsync(p3User, "password").Result;
+                    if (!result.Succeeded)
+                    {
+                        throw new Exception($"Failed to create p3 user: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+                    }
+                }
+
+                var p4User = userManager.FindByEmailAsync("p4@test.com").Result;
+                if (p4User == null)
+                {
+                    p4User = new User()
+                    {
+                        UserName = "p4@test.com",
+                        Email = "p4@test.com",
+                        FirstName = "P4",
+                        LastName = "User",
+                        PlainPassword = "password",
+                        RegisteredAt = DateTime.UtcNow
+                    };
+                    var result = userManager.CreateAsync(p4User, "password").Result;
+                    if (!result.Succeeded)
+                    {
+                        throw new Exception($"Failed to create p4 user: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+                    }
+                }
+
                 // 创建游戏类别
                 if (!applicationDbContext.Categories.Any())
                 {

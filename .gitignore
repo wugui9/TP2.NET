@@ -380,3 +380,16 @@ test-*.sh
 test-*.bat
 quick-test.*
 fix-*.ps1
+
+# Gauniv local runtime artifacts
+Gauniv.WebServer/gauniv.db
+Gauniv.WebServer/gauniv.db-shm
+Gauniv.WebServer/gauniv.db-wal
+gameserver-*.out.log
+gameserver-*.err.log
+
+# Godot local cache/build artifacts
+Gauniv.Game/.godot/
+Gauniv.Game/.mono/
+Gauniv.Game/.import/
+Gauniv.Game/export_presets.cfg
