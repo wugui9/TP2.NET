@@ -21,8 +21,10 @@ public partial class LobbyScreen : Control
     private Label _observersCountLabel = default!;
     private ItemList _playersList = default!;
     private ItemList _observersList = default!;
-    private CheckBox _readyCheck = default!;
     private Button _readyButton = default!;
+    private string _selfSessionId = string.Empty;
+    private bool _selfReady;
+    private bool _isPlayerRole;
     private PendingLobbyState? _pendingState;
 
     public override void _Ready()
@@ -34,11 +36,9 @@ public partial class LobbyScreen : Control
         _observersCountLabel = GetNode<Label>("Root/Stack/MiddleRow/ObserversPanel/ObserversPane/ObserversCountLabel");
         _playersList = GetNode<ItemList>("Root/Stack/MiddleRow/PlayersPanel/PlayersPane/PlayersList");
         _observersList = GetNode<ItemList>("Root/Stack/MiddleRow/ObserversPanel/ObserversPane/ObserversList");
-        _readyCheck = GetNode<CheckBox>("Root/Stack/MiddleRow/ControlPanel/ControlStack/ReadyCheck");
         _readyButton = GetNode<Button>("Root/Stack/MiddleRow/ControlPanel/ControlStack/ReadyButton");
 
-        _readyButton.Pressed += () => EmitSignal(SignalName.ReadyRequested, _readyCheck.ButtonPressed);
-        _readyCheck.Toggled += OnReadyToggled;
+        _readyButton.Pressed += OnReadyPressed;
         GetNode<Button>("Root/Stack/MiddleRow/ControlPanel/ControlStack/OpenGameButton").Pressed += () => EmitSignal(SignalName.OpenGameRequested);
         GetNode<Button>("Root/Stack/MiddleRow/ControlPanel/ControlStack/LeaveButton").Pressed += () => EmitSignal(SignalName.LeaveRequested);
 
@@ -46,41 +46,45 @@ public partial class LobbyScreen : Control
         {
             var state = _pendingState;
             _pendingState = null;
-            SetRoomState(state.RoomId, state.Phase, state.Role, state.IsMj, state.Players, state.Observers);
+            SetRoomState(state.RoomId, state.Phase, state.Role, state.IsMj, state.SelfSessionId, state.Players, state.Observers);
         }
     }
 
-    public void SetRoomState(string roomId, string phase, string role, bool isMj, IReadOnlyList<PlayerStateModel> players, IReadOnlyList<ObserverStateModel> observers)
+    public void SetRoomState(string roomId, string phase, string role, bool isMj, string selfSessionId, IReadOnlyList<PlayerStateModel> players, IReadOnlyList<ObserverStateModel> observers)
     {
         if (_headerLabel is null)
         {
-            _pendingState = new PendingLobbyState(roomId, phase, role, isMj, players, observers);
+            _pendingState = new PendingLobbyState(roomId, phase, role, isMj, selfSessionId, players, observers);
             return;
         }
 
         _headerLabel.Text = $"Room {roomId} | Role: {role}";
         _phaseLabel.Text = $"Phase: {phase}" + (isMj ? " | MJ" : string.Empty);
 
-        var playerRole = role == "player";
-        _readyCheck.Visible = playerRole;
-        _readyButton.Visible = playerRole;
+        _isPlayerRole = role == "player";
+        _selfSessionId = selfSessionId;
+        _readyButton.Visible = _isPlayerRole;
+        _readyButton.Disabled = !_isPlayerRole;
 
-        _roleHintLabel.Text = playerRole
+        _roleHintLabel.Text = _isPlayerRole
             ? (isMj ? "You are MJ. Wait for round start or open game screen." : "Set READY and wait for round start.")
             : "Observer mode: you can watch but cannot click.";
-        _roleHintLabel.SelfModulate = playerRole
+        _roleHintLabel.SelfModulate = _isPlayerRole
             ? new Color(0.80f, 0.97f, 1.0f)
             : new Color(1.0f, 0.90f, 0.78f);
 
-        _readyCheck.Disabled = !playerRole;
-        OnReadyToggled(_readyCheck.ButtonPressed);
-
         _playersList.Clear();
+        _selfReady = false;
         foreach (var player in players)
         {
             var name = player.DisplayName ?? player.SessionId ?? "unknown";
             var tags = player.IsMj ? "[MJ]" : "[P]";
             var ready = player.IsReady ? "READY" : "NOT READY";
+            if (!string.IsNullOrWhiteSpace(_selfSessionId) &&
+                string.Equals(player.SessionId, _selfSessionId, System.StringComparison.OrdinalIgnoreCase))
+            {
+                _selfReady = player.IsReady;
+            }
             var index = _playersList.GetItemCount();
             _playersList.AddItem($"{tags} {name}  -  {ready}");
             _playersList.SetItemCustomFgColor(index, player.IsMj
@@ -99,16 +103,30 @@ public partial class LobbyScreen : Control
 
         _playersCountLabel.Text = $"{players.Count} player(s)";
         _observersCountLabel.Text = $"{observers.Count} observer(s)";
+        ApplyReadyButtonState();
     }
 
-    private void OnReadyToggled(bool isReady)
+    private void OnReadyPressed()
+    {
+        if (!_isPlayerRole)
+        {
+            return;
+        }
+
+        var targetReady = !_selfReady;
+        _selfReady = targetReady;
+        ApplyReadyButtonState();
+        EmitSignal(SignalName.ReadyRequested, targetReady);
+    }
+
+    private void ApplyReadyButtonState()
     {
         if (_readyButton is null)
         {
             return;
         }
 
-        _readyButton.Text = isReady ? "Send READY" : "Send NOT READY";
+        _readyButton.Text = _selfReady ? "✓ Ready" : "Ready";
     }
 
     private sealed record PendingLobbyState(
@@ -116,6 +134,7 @@ public partial class LobbyScreen : Control
         string Phase,
         string Role,
         bool IsMj,
+        string SelfSessionId,
         IReadOnlyList<PlayerStateModel> Players,
         IReadOnlyList<ObserverStateModel> Observers);
 }

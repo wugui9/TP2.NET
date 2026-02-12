@@ -81,13 +81,9 @@ theme_override_constants/separation = 8
 layout_mode = 2
 text = "Role hint"
 
-[node name="ReadyCheck" type="CheckBox" parent="Root/Stack/MiddleRow/ControlPanel/ControlStack"]
-layout_mode = 2
-text = "Ready"
-
 [node name="ReadyButton" type="Button" parent="Root/Stack/MiddleRow/ControlPanel/ControlStack"]
 layout_mode = 2
-text = "Send Ready"
+text = "Ready"
 
 [node name="OpenGameButton" type="Button" parent="Root/Stack/MiddleRow/ControlPanel/ControlStack"]
 layout_mode = 2

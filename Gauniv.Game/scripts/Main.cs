@@ -270,7 +270,7 @@ public partial class Main : Control
             _mjSessionId = mj.SessionId ?? _mjSessionId;
         }
 
-        _currentLobby?.SetRoomState(_roomId, _phase, _role, IsCurrentUserMj(), _players, _observers);
+        _currentLobby?.SetRoomState(_roomId, _phase, _role, IsCurrentUserMj(), _sessionId, _players, _observers);
 
         if (_currentGame is not null)
         {
@@ -566,7 +566,7 @@ public partial class Main : Control
         screen.ReadyRequested += OnLobbyReadyRequested;
         screen.LeaveRequested += OnLobbyLeaveRequested;
         screen.OpenGameRequested += OnLobbyOpenGameRequested;
-        screen.SetRoomState(_roomId, _phase, _role, IsCurrentUserMj(), _players, _observers);
+        screen.SetRoomState(_roomId, _phase, _role, IsCurrentUserMj(), _sessionId, _players, _observers);
 
         _currentLogin = null;
         _currentRoomList = null;
