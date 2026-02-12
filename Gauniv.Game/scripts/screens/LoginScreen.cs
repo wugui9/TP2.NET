@@ -26,6 +26,7 @@ public partial class LoginScreen : Control
     {
         _hostInput = GetNode<LineEdit>("Root/Stack/ConnectionRow/HostInput");
         _portInput = GetNode<SpinBox>("Root/Stack/ConnectionRow/PortInput");
+        _portInput.Value = 7000;
         _connectButton = GetNode<Button>("Root/Stack/ConnectionRow/ConnectButton");
         _emailInput = GetNode<LineEdit>("Root/Stack/AuthRow/EmailInput");
         _passwordInput = GetNode<LineEdit>("Root/Stack/AuthRow/PasswordInput");
