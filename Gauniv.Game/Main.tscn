@@ -23,6 +23,22 @@ grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("3")
 
+[node name="ToastPanel" type="PanelContainer" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 10
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -280.0
+offset_top = 10.0
+offset_right = 280.0
+offset_bottom = 58.0
+grow_horizontal = 2
+
+[node name="ToastLabel" type="Label" parent="ToastPanel"]
+layout_mode = 2
+text = ""
+
 [node name="Root" type="MarginContainer" parent="."]
 layout_mode = 1
 anchors_preset = 15
@@ -58,13 +74,29 @@ size_flags_vertical = 3
 
 [node name="LogFrame" type="PanelContainer" parent="Root/Stack"]
 layout_mode = 2
-size_flags_vertical = 3
+size_flags_vertical = 1
 
-[node name="LogOutput" type="RichTextLabel" parent="Root/Stack/LogFrame"]
+[node name="LogStack" type="VBoxContainer" parent="Root/Stack/LogFrame"]
 layout_mode = 2
-custom_minimum_size = Vector2(0, 140)
+theme_override_constants/separation = 6
+
+[node name="LogHeader" type="HBoxContainer" parent="Root/Stack/LogFrame/LogStack"]
+layout_mode = 2
+
+[node name="LogTitleLabel" type="Label" parent="Root/Stack/LogFrame/LogStack/LogHeader"]
+layout_mode = 2
 size_flags_horizontal = 3
-size_flags_vertical = 3
+text = "Debug Log"
+
+[node name="LogToggleButton" type="Button" parent="Root/Stack/LogFrame/LogStack/LogHeader"]
+layout_mode = 2
+text = "Show"
+
+[node name="LogOutput" type="RichTextLabel" parent="Root/Stack/LogFrame/LogStack"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 88)
+size_flags_horizontal = 3
+size_flags_vertical = 1
 scroll_following = true
 text = "Log:"
 

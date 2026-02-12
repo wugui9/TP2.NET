@@ -23,8 +23,15 @@ public partial class Main : Control
 
     private Label _statusLabel = default!;
     private MarginContainer _screenHost = default!;
+    private PanelContainer _logFrame = default!;
     private RichTextLabel _logOutput = default!;
+    private Button _logToggleButton = default!;
+    private PanelContainer _toastPanel = default!;
+    private Label _toastLabel = default!;
     private NetworkClient _network = default!;
+    private Tween? _toastTween;
+    private Tween? _screenTween;
+    private bool _isLogCollapsed = true;
 
     private LoginScreen? _currentLogin;
     private RoomListScreen? _currentRoomList;
@@ -56,8 +63,15 @@ public partial class Main : Control
 
         _statusLabel = GetNode<Label>("Root/Stack/StatusLabel");
         _screenHost = GetNode<MarginContainer>("Root/Stack/ScreenFrame/ScreenHost");
-        _logOutput = GetNode<RichTextLabel>("Root/Stack/LogFrame/LogOutput");
+        _logFrame = GetNode<PanelContainer>("Root/Stack/LogFrame");
+        _logOutput = GetNode<RichTextLabel>("Root/Stack/LogFrame/LogStack/LogOutput");
+        _logToggleButton = GetNode<Button>("Root/Stack/LogFrame/LogStack/LogHeader/LogToggleButton");
+        _toastPanel = GetNode<PanelContainer>("ToastPanel");
+        _toastLabel = GetNode<Label>("ToastPanel/ToastLabel");
         _network = GetNode<NetworkClient>("NetworkClient");
+        _toastPanel.Visible = false;
+        _logToggleButton.Pressed += ToggleLogPanel;
+        ApplyLogCollapsedState();
 
         _network.Connected += OnConnected;
         _network.Disconnected += OnDisconnected;
@@ -83,6 +97,7 @@ public partial class Main : Control
     {
         SetStatus("Connected to game server.");
         _currentLogin?.SetConnectionState(true);
+        ShowToast("Connected to GameServer.", false);
         Log("Connected.");
     }
 
@@ -95,6 +110,7 @@ public partial class Main : Control
         SetStatus("Disconnected");
         ShowLoginScreen();
         _currentLogin?.SetConnectionState(false);
+        ShowToast("Disconnected from server.", true);
         Log("Disconnected.");
     }
 
@@ -102,6 +118,7 @@ public partial class Main : Control
     {
         Log($"Transport error: {message}");
         SetStatus($"Transport error: {message}");
+        ShowToast($"Network error: {message}", true);
     }
 
     private void OnMessageReceived(string type, string payloadJson)
@@ -172,6 +189,7 @@ public partial class Main : Control
         _isAuthenticated = true;
         _displayName = payload.DisplayName ?? payload.Email ?? "Player";
         SetStatus($"Authenticated as {_displayName}");
+        ShowToast($"Welcome, {_displayName}.", false);
 
         ShowRoomListScreen();
         _ = SendMessageAsync("room.list", new Dictionary<string, object?>());
@@ -199,6 +217,7 @@ public partial class Main : Control
 
         _pendingJoinRoomId = payload.RoomId ?? string.Empty;
         SetStatus($"Room created: {_pendingJoinRoomId}");
+        ShowToast($"Room created: {_pendingJoinRoomId}", false);
         _currentRoomList?.SetSelectedRoom(_pendingJoinRoomId);
         _ = SendMessageAsync("room.list", new Dictionary<string, object?>());
     }
@@ -220,6 +239,7 @@ public partial class Main : Control
         _pendingJoinRoomId = string.Empty;
 
         SetStatus($"Joined {_roomId} as {_role}");
+        ShowToast($"Joined {_roomId} as {_role}.", false);
         ShowLobbyScreen();
     }
 
@@ -304,6 +324,7 @@ public partial class Main : Control
         _targetRow = null;
         _targetCol = null;
         _lastResult = payload;
+        ShowToast("Round finished. Showing results.", false);
 
         ShowResultScreen();
     }
@@ -319,6 +340,7 @@ public partial class Main : Control
         var code = payload.Code ?? "unknown";
         var message = payload.Message ?? "Unknown error";
         SetStatus($"Error {code}: {message}");
+        ShowToast($"Error {code}: {message}", true);
     }
 
     private bool IsCurrentUserMj()
@@ -652,6 +674,15 @@ public partial class Main : Control
         _screenHost.AddChild(screen);
         screen.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
         screen.SizeFlagsVertical = Control.SizeFlags.ExpandFill;
+        screen.Modulate = new Color(1, 1, 1, 0);
+        screen.Scale = new Vector2(0.985f, 0.985f);
+
+        _screenTween?.Kill();
+        _screenTween = CreateTween();
+        _screenTween.SetEase(Tween.EaseType.Out);
+        _screenTween.SetTrans(Tween.TransitionType.Cubic);
+        _screenTween.TweenProperty(screen, "modulate:a", 1.0f, 0.18f);
+        _screenTween.Parallel().TweenProperty(screen, "scale", Vector2.One, 0.18f);
     }
 
     private T? InstantiateScreen<T>(PackedScene scene, string sceneName) where T : Control
@@ -691,6 +722,56 @@ public partial class Main : Control
     private void SetStatus(string text)
     {
         _statusLabel.Text = $"Status: {text}";
+    }
+
+    private void ToggleLogPanel()
+    {
+        _isLogCollapsed = !_isLogCollapsed;
+        ApplyLogCollapsedState();
+    }
+
+    private void ApplyLogCollapsedState()
+    {
+        if (_logOutput is null || _logToggleButton is null || _logFrame is null)
+        {
+            return;
+        }
+
+        _logOutput.Visible = !_isLogCollapsed;
+        _logToggleButton.Text = _isLogCollapsed ? "Show" : "Hide";
+        _logFrame.CustomMinimumSize = _isLogCollapsed
+            ? new Vector2(0, 38)
+            : new Vector2(0, 140);
+    }
+
+    private void ShowToast(string text, bool isError)
+    {
+        if (_toastPanel is null || _toastLabel is null)
+        {
+            return;
+        }
+
+        _toastPanel.Visible = true;
+        _toastLabel.Text = text;
+        _toastPanel.SelfModulate = isError
+            ? new Color(1.0f, 0.65f, 0.72f, 1.0f)
+            : new Color(0.72f, 0.94f, 1.0f, 1.0f);
+        _toastPanel.Modulate = new Color(1, 1, 1, 0);
+
+        _toastTween?.Kill();
+        _toastTween = CreateTween();
+        _toastTween.SetEase(Tween.EaseType.Out);
+        _toastTween.SetTrans(Tween.TransitionType.Cubic);
+        _toastTween.TweenProperty(_toastPanel, "modulate:a", 1.0f, 0.14f);
+        _toastTween.TweenInterval(1.6f);
+        _toastTween.TweenProperty(_toastPanel, "modulate:a", 0.0f, 0.25f);
+        _toastTween.Finished += () =>
+        {
+            if (IsInstanceValid(_toastPanel))
+            {
+                _toastPanel.Visible = false;
+            }
+        };
     }
 
     private void Log(string text)

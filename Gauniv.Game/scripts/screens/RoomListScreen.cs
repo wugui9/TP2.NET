@@ -22,6 +22,7 @@ public partial class RoomListScreen : Control
     private Label _selectedRoomMetaLabel = default!;
     private LineEdit _newRoomNameInput = default!;
     private SpinBox _boardSizeInput = default!;
+    private Button _joinButton = default!;
 
     private readonly Dictionary<string, RoomSummaryModel> _roomsById = new(StringComparer.OrdinalIgnoreCase);
 
@@ -40,11 +41,13 @@ public partial class RoomListScreen : Control
         _selectedRoomMetaLabel = GetNode<Label>("Root/Stack/BodyRow/SidePanel/SideVBox/SelectedRoomMetaLabel");
         _newRoomNameInput = GetNode<LineEdit>("Root/Stack/BodyRow/SidePanel/SideVBox/NewRoomNameInput");
         _boardSizeInput = GetNode<SpinBox>("Root/Stack/BodyRow/SidePanel/SideVBox/CreateConfigRow/BoardSizeInput");
+        _joinButton = GetNode<Button>("Root/Stack/BodyRow/SidePanel/SideVBox/JoinButton");
 
         GetNode<Button>("Root/Stack/TopBar/TopRow/RefreshButton").Pressed += () => EmitSignal(SignalName.RefreshRequested);
         GetNode<Button>("Root/Stack/BodyRow/SidePanel/SideVBox/CreateConfigRow/CreateButton").Pressed += OnCreatePressed;
-        GetNode<Button>("Root/Stack/BodyRow/SidePanel/SideVBox/JoinButton").Pressed += OnJoinPressed;
+        _joinButton.Pressed += OnJoinPressed;
         _roomsList.ItemSelected += OnRoomSelected;
+        _joinButton.Disabled = true;
 
         if (_hasPendingStatus)
         {
@@ -121,6 +124,16 @@ public partial class RoomListScreen : Control
             var index = _roomsList.GetItemCount();
             _roomsList.AddItem(text);
             _roomsList.SetItemMetadata(index, roomId);
+
+            var color = status switch
+            {
+                "Full" => new Color(1.0f, 0.74f, 0.74f),
+                "Waiting" => new Color(0.76f, 0.95f, 1.0f),
+                "MjSelecting" => new Color(0.90f, 0.82f, 1.0f),
+                "Clicking" => new Color(0.84f, 1.0f, 0.84f),
+                _ => new Color(0.9f, 0.95f, 1.0f)
+            };
+            _roomsList.SetItemCustomFgColor(index, color);
         }
 
         _roomCountLabel.Text = $"{_roomsById.Count} room(s) available";
@@ -139,6 +152,7 @@ public partial class RoomListScreen : Control
         {
             _selectedRoomInput.Text = string.Empty;
             _selectedRoomMetaLabel.Text = "Status: -";
+            _joinButton.Disabled = true;
         }
     }
 
@@ -165,6 +179,7 @@ public partial class RoomListScreen : Control
         var maxPlayers = Math.Max(room.MaxPlayers, 4);
         var status = room.Players >= maxPlayers ? "Full" : phase;
         _selectedRoomMetaLabel.Text = $"Status: {status} | Players {room.Players}/{maxPlayers} | Obs {room.Observers} | Board {room.BoardSize}x{room.BoardSize}";
+        _joinButton.Disabled = status == "Full";
     }
 
     private void OnCreatePressed()

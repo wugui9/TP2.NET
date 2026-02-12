@@ -19,6 +19,8 @@ public partial class GameScreen : Control
 
     private readonly List<Button> _cellButtons = new();
     private int _boardSize;
+    private int _currentTargetIndex = -1;
+    private Tween? _targetPulseTween;
     private int? _pendingBoardSize;
     private PendingGameState? _pendingGameState;
 
@@ -65,6 +67,7 @@ public partial class GameScreen : Control
         }
 
         _boardSize = boardSize;
+        ClearTargetPulse();
 
         foreach (var btn in _cellButtons)
         {
@@ -80,7 +83,7 @@ public partial class GameScreen : Control
             {
                 var button = new Button
                 {
-                    Text = string.Empty,
+                    Text = " ",
                     SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
                     SizeFlagsVertical = Control.SizeFlags.ExpandFill,
                     CustomMinimumSize = new Vector2(76, 76),
@@ -120,12 +123,20 @@ public partial class GameScreen : Control
         _instructionLabel.Text = canAct
             ? $"ACTION: {instruction}"
             : $"WATCH: {instruction}";
+        _instructionLabel.SelfModulate = canAct
+            ? new Color(0.82f, 1.0f, 0.84f)
+            : new Color(0.92f, 0.94f, 1.0f);
+
+        ClearTargetPulse();
 
         for (var i = 0; i < _cellButtons.Count; i++)
         {
             var button = _cellButtons[i];
             button.Disabled = !canAct;
-            button.Modulate = Colors.White;
+            button.Modulate = canAct
+                ? new Color(0.86f, 0.97f, 1.0f)
+                : new Color(0.64f, 0.72f, 0.82f);
+            button.Scale = Vector2.One;
         }
 
         if (targetRow.HasValue && targetCol.HasValue && _boardSize > 0)
@@ -133,11 +144,47 @@ public partial class GameScreen : Control
             var index = targetRow.Value * _boardSize + targetCol.Value;
             if (index >= 0 && index < _cellButtons.Count)
             {
-                _cellButtons[index].Modulate = canAct
-                    ? new Color(0.72f, 1.0f, 0.82f)
-                    : new Color(0.74f, 0.88f, 1.0f);
+                _currentTargetIndex = index;
+                var targetColor = canAct
+                    ? new Color(0.70f, 1.0f, 0.80f)
+                    : new Color(0.78f, 0.90f, 1.0f);
+                _cellButtons[index].Modulate = targetColor;
+                StartTargetPulse(index, targetColor);
             }
         }
+    }
+
+    private void StartTargetPulse(int index, Color baseColor)
+    {
+        if (index < 0 || index >= _cellButtons.Count)
+        {
+            return;
+        }
+
+        var pulseColor = new Color(
+            Mathf.Clamp(baseColor.R + 0.14f, 0, 1),
+            Mathf.Clamp(baseColor.G + 0.10f, 0, 1),
+            Mathf.Clamp(baseColor.B + 0.10f, 0, 1),
+            1f);
+
+        _targetPulseTween?.Kill();
+        _targetPulseTween = CreateTween();
+        _targetPulseTween.SetLoops();
+        _targetPulseTween.TweenProperty(_cellButtons[index], "modulate", pulseColor, 0.28f);
+        _targetPulseTween.TweenProperty(_cellButtons[index], "modulate", baseColor, 0.28f);
+    }
+
+    private void ClearTargetPulse()
+    {
+        _targetPulseTween?.Kill();
+        _targetPulseTween = null;
+
+        if (_currentTargetIndex >= 0 && _currentTargetIndex < _cellButtons.Count)
+        {
+            _cellButtons[_currentTargetIndex].Scale = Vector2.One;
+        }
+
+        _currentTargetIndex = -1;
     }
 
     private sealed record PendingGameState(

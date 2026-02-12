@@ -1,5 +1,6 @@
 using Godot;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Gauniv.Game;
 
@@ -54,6 +55,15 @@ public partial class ResultScreen : Control
             : $"MJ: {result.MjDisplayName}";
 
         var entries = result.Results ?? new List<RoundResultEntryModel>();
+        var validCount = entries.Count(e => e.IsValid);
+        _subtitleLabel.Text += $" | Valid: {validCount}/{entries.Count}";
+
+        if (entries.Count == 0)
+        {
+            _resultList.AddItem("No ranking entries.");
+            return;
+        }
+
         foreach (var entry in entries)
         {
             var name = entry.DisplayName ?? entry.SessionId ?? "unknown";
@@ -69,9 +79,26 @@ public partial class ResultScreen : Control
 
             var reaction = entry.ReactionMs.HasValue ? $"{entry.ReactionMs.Value} ms" : "N/A";
             var validity = entry.IsValid ? "valid" : "invalid";
-            var self = string.Equals(entry.SessionId, selfSessionId) ? "  <you>" : string.Empty;
+            var isSelf = string.Equals(entry.SessionId, selfSessionId);
+            var self = isSelf ? "  <you>" : string.Empty;
 
+            var index = _resultList.GetItemCount();
             _resultList.AddItem($"{rankText} {name}{self} | {reaction} | {validity}");
+
+            var color = rank switch
+            {
+                1 => new Color(1.0f, 0.90f, 0.60f),
+                2 => new Color(0.88f, 0.94f, 1.0f),
+                3 => new Color(1.0f, 0.84f, 0.74f),
+                _ => (entry.IsValid ? new Color(0.88f, 1.0f, 0.90f) : new Color(1.0f, 0.78f, 0.78f))
+            };
+
+            if (isSelf)
+            {
+                color = new Color(0.72f, 1.0f, 1.0f);
+            }
+
+            _resultList.SetItemCustomFgColor(index, color);
         }
     }
 }

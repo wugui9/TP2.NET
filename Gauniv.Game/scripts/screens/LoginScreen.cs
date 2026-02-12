@@ -36,6 +36,8 @@ public partial class LoginScreen : Control
 
         _connectButton.Pressed += OnConnectPressed;
         _loginButton.Pressed += OnLoginPressed;
+        _hostInput.TextSubmitted += _ => OnConnectPressed();
+        _passwordInput.TextSubmitted += _ => OnLoginPressed();
 
         GetNode<Button>("Root/Stack/CardsRow/AuthCard/AuthStack/QuickRow/QuickP1Button").Pressed += () => FillAccount("p1@test.com", "password");
         GetNode<Button>("Root/Stack/CardsRow/AuthCard/AuthStack/QuickRow/QuickP2Button").Pressed += () => FillAccount("p2@test.com", "password");
@@ -78,6 +80,12 @@ public partial class LoginScreen : Control
         }
 
         _statusLabel.Text = text;
+        var lower = text.ToLowerInvariant();
+        _statusLabel.SelfModulate = lower.Contains("error") || lower.Contains("failed")
+            ? new Color(1.0f, 0.76f, 0.78f)
+            : (lower.Contains("connect")
+                ? new Color(0.80f, 0.96f, 1.0f)
+                : new Color(0.90f, 0.96f, 1.0f));
     }
 
     private void FillAccount(string email, string password)
