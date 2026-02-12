@@ -43,6 +43,10 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = ""
 
+[node name="CreateFloatingButton" type="Button" parent="Root/Stack/TopBar/TopRow"]
+layout_mode = 2
+text = "+ Create Room"
+
 [node name="RefreshButton" type="Button" parent="Root/Stack/TopBar/TopRow"]
 layout_mode = 2
 text = "Refresh"
@@ -67,18 +71,6 @@ size_flags_vertical = 3
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 10
-
-[node name="CreateFloatingButton" type="Button" parent="."]
-layout_mode = 1
-anchors_preset = 10
-anchor_left = 1.0
-anchor_right = 1.0
-offset_left = -190.0
-offset_top = 26.0
-offset_right = -16.0
-offset_bottom = 66.0
-grow_horizontal = 0
-text = "+ Create Room"
 
 [node name="CreateOverlay" type="ColorRect" parent="."]
 visible = false

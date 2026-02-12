@@ -40,7 +40,7 @@ public partial class RoomListScreen : Control
         _statusLabel = GetNode<Label>("Root/Stack/TopBar/TopRow/StatusLabel");
         _roomCountLabel = GetNode<Label>("Root/Stack/RoomsPanel/RoomsVBox/RoomCountLabel");
         _roomsFlow = GetNode<VBoxContainer>("Root/Stack/RoomsPanel/RoomsVBox/RoomsScroll/RoomsFlow");
-        _createFloatingButton = GetNode<Button>("CreateFloatingButton");
+        _createFloatingButton = GetNode<Button>("Root/Stack/TopBar/TopRow/CreateFloatingButton");
         _createOverlay = GetNode<ColorRect>("CreateOverlay");
         _newRoomNameInput = GetNode<LineEdit>("CreateOverlay/CreateCenter/CreateDialog/DialogStack/NewRoomNameInput");
         _boardSizeInput = GetNode<SpinBox>("CreateOverlay/CreateCenter/CreateDialog/DialogStack/BoardSizeInput");
