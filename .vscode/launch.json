@@ -108,39 +108,5 @@
             "stopAtEntry": false,
             "internalConsoleOptions": "openOnSessionStart"
         },
-        {
-            "name": "启动 PHP 客户端",
-            "type": "php",
-            "request": "launch",
-            "port": 9003,
-            "pathMappings": {
-                "/": "${workspaceFolder}/Gauniv.PhpClient"
-            },
-            "cwd": "${workspaceFolder}/Gauniv.PhpClient",
-            "runtimeExecutable": "php",
-            "runtimeArgs": [
-                "-S",
-                "localhost:8080",
-                "-t",
-                "${workspaceFolder}/Gauniv.PhpClient"
-            ],
-            "serverReadyAction": {
-                "action": "openExternally",
-                "pattern": "Development Server \\(http://localhost:8080\\) started",
-                "uriFormat": "http://localhost:8080"
-            }
-        }
-    ],
-    "compounds": [
-        {
-            "name": "启动 WebServer + Client",
-            "configurations": ["启动 WebServer", "启动 Client"],
-            "stopAll": true
-        },
-        {
-            "name": "启动 WebServer + PHP 客户端",
-            "configurations": ["启动 WebServer", "启动 PHP 客户端"],
-            "stopAll": true
-        }
     ]
 }
