@@ -16,42 +16,68 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 10.0
-offset_top = 10.0
-offset_right = -10.0
-offset_bottom = -10.0
+offset_left = 16.0
+offset_top = 16.0
+offset_right = -16.0
+offset_bottom = -16.0
 grow_horizontal = 2
 grow_vertical = 2
 
 [node name="Stack" type="VBoxContainer" parent="Root"]
 layout_mode = 2
-theme_override_constants/separation = 8
+theme_override_constants/separation = 12
 
-[node name="HeaderLabel" type="Label" parent="Root/Stack"]
+[node name="HudPanel" type="PanelContainer" parent="Root/Stack"]
+layout_mode = 2
+
+[node name="HudStack" type="VBoxContainer" parent="Root/Stack/HudPanel"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="HeaderLabel" type="Label" parent="Root/Stack/HudPanel/HudStack"]
 layout_mode = 2
 text = "Room"
 
-[node name="PhaseLabel" type="Label" parent="Root/Stack"]
+[node name="PhaseLabel" type="Label" parent="Root/Stack/HudPanel/HudStack"]
 layout_mode = 2
 text = "Phase"
 
-[node name="TargetLabel" type="Label" parent="Root/Stack"]
+[node name="ArenaRow" type="HBoxContainer" parent="Root/Stack"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 12
+
+[node name="BoardPanel" type="PanelContainer" parent="Root/Stack/ArenaRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="BoardStack" type="VBoxContainer" parent="Root/Stack/ArenaRow/BoardPanel"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="TargetLabel" type="Label" parent="Root/Stack/ArenaRow/BoardPanel/BoardStack"]
 layout_mode = 2
 text = "Target"
 
-[node name="InstructionLabel" type="Label" parent="Root/Stack"]
-layout_mode = 2
-text = "Instruction"
-
-[node name="BoardGrid" type="GridContainer" parent="Root/Stack"]
+[node name="BoardGrid" type="GridContainer" parent="Root/Stack/ArenaRow/BoardPanel/BoardStack"]
 layout_mode = 2
 size_flags_vertical = 3
 columns = 5
 
-[node name="ActionRow" type="HBoxContainer" parent="Root/Stack"]
+[node name="SidePanel" type="PanelContainer" parent="Root/Stack/ArenaRow"]
 layout_mode = 2
-theme_override_constants/separation = 6
+size_flags_horizontal = 3
+size_flags_vertical = 3
 
-[node name="BackLobbyButton" type="Button" parent="Root/Stack/ActionRow"]
+[node name="SideStack" type="VBoxContainer" parent="Root/Stack/ArenaRow/SidePanel"]
 layout_mode = 2
-text = "Back Lobby"
+theme_override_constants/separation = 8
+
+[node name="InstructionLabel" type="Label" parent="Root/Stack/ArenaRow/SidePanel/SideStack"]
+layout_mode = 2
+text = "Instruction"
+
+[node name="BackLobbyButton" type="Button" parent="Root/Stack/ArenaRow/SidePanel/SideStack"]
+layout_mode = 2
+text = "Back To Lobby"

@@ -16,10 +16,15 @@ public partial class RoomListScreen : Control
     public delegate void JoinRequestedEventHandler(string roomId);
 
     private Label _statusLabel = default!;
+    private Label _roomCountLabel = default!;
     private ItemList _roomsList = default!;
     private LineEdit _selectedRoomInput = default!;
+    private Label _selectedRoomMetaLabel = default!;
     private LineEdit _newRoomNameInput = default!;
     private SpinBox _boardSizeInput = default!;
+
+    private readonly Dictionary<string, RoomSummaryModel> _roomsById = new(StringComparer.OrdinalIgnoreCase);
+
     private string _pendingStatus = string.Empty;
     private bool _hasPendingStatus;
     private string _pendingSelectedRoom = string.Empty;
@@ -28,15 +33,17 @@ public partial class RoomListScreen : Control
 
     public override void _Ready()
     {
-        _statusLabel = GetNode<Label>("Root/Stack/StatusLabel");
-        _roomsList = GetNode<ItemList>("Root/Stack/RoomsList");
-        _selectedRoomInput = GetNode<LineEdit>("Root/Stack/JoinRow/SelectedRoomInput");
-        _newRoomNameInput = GetNode<LineEdit>("Root/Stack/CreateRow/NewRoomNameInput");
-        _boardSizeInput = GetNode<SpinBox>("Root/Stack/CreateRow/BoardSizeInput");
+        _statusLabel = GetNode<Label>("Root/Stack/TopBar/TopRow/StatusLabel");
+        _roomCountLabel = GetNode<Label>("Root/Stack/BodyRow/RoomsPanel/RoomsVBox/RoomCountLabel");
+        _roomsList = GetNode<ItemList>("Root/Stack/BodyRow/RoomsPanel/RoomsVBox/RoomsList");
+        _selectedRoomInput = GetNode<LineEdit>("Root/Stack/BodyRow/SidePanel/SideVBox/SelectedRoomInput");
+        _selectedRoomMetaLabel = GetNode<Label>("Root/Stack/BodyRow/SidePanel/SideVBox/SelectedRoomMetaLabel");
+        _newRoomNameInput = GetNode<LineEdit>("Root/Stack/BodyRow/SidePanel/SideVBox/NewRoomNameInput");
+        _boardSizeInput = GetNode<SpinBox>("Root/Stack/BodyRow/SidePanel/SideVBox/CreateConfigRow/BoardSizeInput");
 
-        GetNode<Button>("Root/Stack/ActionRow/RefreshButton").Pressed += () => EmitSignal(SignalName.RefreshRequested);
-        GetNode<Button>("Root/Stack/CreateRow/CreateButton").Pressed += OnCreatePressed;
-        GetNode<Button>("Root/Stack/JoinRow/JoinButton").Pressed += OnJoinPressed;
+        GetNode<Button>("Root/Stack/TopBar/TopRow/RefreshButton").Pressed += () => EmitSignal(SignalName.RefreshRequested);
+        GetNode<Button>("Root/Stack/BodyRow/SidePanel/SideVBox/CreateConfigRow/CreateButton").Pressed += OnCreatePressed;
+        GetNode<Button>("Root/Stack/BodyRow/SidePanel/SideVBox/JoinButton").Pressed += OnJoinPressed;
         _roomsList.ItemSelected += OnRoomSelected;
 
         if (_hasPendingStatus)
@@ -66,6 +73,7 @@ public partial class RoomListScreen : Control
             _hasPendingStatus = true;
             return;
         }
+
         _statusLabel.Text = text;
     }
 
@@ -77,7 +85,9 @@ public partial class RoomListScreen : Control
             _hasPendingSelectedRoom = true;
             return;
         }
+
         _selectedRoomInput.Text = roomId;
+        UpdateSelectedMeta(roomId);
     }
 
     public void SetRooms(IReadOnlyList<RoomSummaryModel> rooms)
@@ -87,23 +97,48 @@ public partial class RoomListScreen : Control
             _pendingRooms = rooms;
             return;
         }
+
+        _roomsById.Clear();
         _roomsList.Clear();
 
         for (var i = 0; i < rooms.Count; i++)
         {
             var room = rooms[i];
             var roomId = room.RoomId ?? string.Empty;
-            var phase = room.Phase ?? "Unknown";
-            var status = phase;
-            if (room.Players >= room.MaxPlayers && room.MaxPlayers > 0)
+            if (string.IsNullOrWhiteSpace(roomId))
             {
-                status = "Full";
+                continue;
             }
 
-            var text = $"{roomId} | {status} | {room.Players}/{Math.Max(room.MaxPlayers, 4)} | obs:{room.Observers}";
+            _roomsById[roomId] = room;
+
+            var roomName = string.IsNullOrWhiteSpace(room.RoomName) ? roomId : room.RoomName;
+            var phase = room.Phase ?? "Unknown";
+            var maxPlayers = Math.Max(room.MaxPlayers, 4);
+            var status = room.Players >= maxPlayers ? "Full" : phase;
+
+            var text = $"{roomName}  [{roomId}]  |  {status}  |  {room.Players}/{maxPlayers}  |  Obs {room.Observers}";
             var index = _roomsList.GetItemCount();
             _roomsList.AddItem(text);
             _roomsList.SetItemMetadata(index, roomId);
+        }
+
+        _roomCountLabel.Text = $"{_roomsById.Count} room(s) available";
+
+        var current = _selectedRoomInput.Text.Trim();
+        if (!string.IsNullOrWhiteSpace(current) && _roomsById.ContainsKey(current))
+        {
+            UpdateSelectedMeta(current);
+        }
+        else if (_roomsList.GetItemCount() > 0)
+        {
+            _roomsList.Select(0);
+            OnRoomSelected(0);
+        }
+        else
+        {
+            _selectedRoomInput.Text = string.Empty;
+            _selectedRoomMetaLabel.Text = "Status: -";
         }
     }
 
@@ -112,8 +147,24 @@ public partial class RoomListScreen : Control
         var meta = _roomsList.GetItemMetadata((int)index);
         if (meta.VariantType == Variant.Type.String)
         {
-            _selectedRoomInput.Text = meta.AsString();
+            var roomId = meta.AsString();
+            _selectedRoomInput.Text = roomId;
+            UpdateSelectedMeta(roomId);
         }
+    }
+
+    private void UpdateSelectedMeta(string roomId)
+    {
+        if (!_roomsById.TryGetValue(roomId, out var room))
+        {
+            _selectedRoomMetaLabel.Text = "Status: unknown room";
+            return;
+        }
+
+        var phase = room.Phase ?? "Unknown";
+        var maxPlayers = Math.Max(room.MaxPlayers, 4);
+        var status = room.Players >= maxPlayers ? "Full" : phase;
+        _selectedRoomMetaLabel.Text = $"Status: {status} | Players {room.Players}/{maxPlayers} | Obs {room.Observers} | Board {room.BoardSize}x{room.BoardSize}";
     }
 
     private void OnCreatePressed()
@@ -123,6 +174,12 @@ public partial class RoomListScreen : Control
 
     private void OnJoinPressed()
     {
-        EmitSignal(SignalName.JoinRequested, _selectedRoomInput.Text.Trim());
+        var roomId = _selectedRoomInput.Text.Trim();
+        if (string.IsNullOrWhiteSpace(roomId))
+        {
+            return;
+        }
+
+        EmitSignal(SignalName.JoinRequested, roomId);
     }
 }

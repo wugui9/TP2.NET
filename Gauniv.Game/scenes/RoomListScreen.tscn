@@ -16,49 +16,106 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 10.0
-offset_top = 10.0
-offset_right = -10.0
-offset_bottom = -10.0
+offset_left = 16.0
+offset_top = 16.0
+offset_right = -16.0
+offset_bottom = -16.0
 grow_horizontal = 2
 grow_vertical = 2
 
 [node name="Stack" type="VBoxContainer" parent="Root"]
 layout_mode = 2
-theme_override_constants/separation = 8
+theme_override_constants/separation = 12
 
-[node name="TitleLabel" type="Label" parent="Root/Stack"]
+[node name="TopBar" type="PanelContainer" parent="Root/Stack"]
 layout_mode = 2
-text = "Room List"
 
-[node name="StatusLabel" type="Label" parent="Root/Stack"]
+[node name="TopRow" type="HBoxContainer" parent="Root/Stack/TopBar"]
 layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="TitleLabel" type="Label" parent="Root/Stack/TopBar/TopRow"]
+layout_mode = 2
+text = "Matchmaking Rooms"
+
+[node name="StatusLabel" type="Label" parent="Root/Stack/TopBar/TopRow"]
+layout_mode = 2
+size_flags_horizontal = 3
 text = ""
 
-[node name="ActionRow" type="HBoxContainer" parent="Root/Stack"]
-layout_mode = 2
-theme_override_constants/separation = 6
-
-[node name="RefreshButton" type="Button" parent="Root/Stack/ActionRow"]
+[node name="RefreshButton" type="Button" parent="Root/Stack/TopBar/TopRow"]
 layout_mode = 2
 text = "Refresh"
 
-[node name="RoomsList" type="ItemList" parent="Root/Stack"]
+[node name="BodyRow" type="HBoxContainer" parent="Root/Stack"]
 layout_mode = 2
 size_flags_vertical = 3
+theme_override_constants/separation = 12
 
-[node name="CreateRow" type="HBoxContainer" parent="Root/Stack"]
-layout_mode = 2
-theme_override_constants/separation = 6
-
-[node name="NewRoomNameInput" type="LineEdit" parent="Root/Stack/CreateRow"]
+[node name="RoomsPanel" type="PanelContainer" parent="Root/Stack/BodyRow"]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "My Room"
-placeholder_text = "New room name"
+size_flags_vertical = 3
 
-[node name="BoardSizeInput" type="SpinBox" parent="Root/Stack/CreateRow"]
+[node name="RoomsVBox" type="VBoxContainer" parent="Root/Stack/BodyRow/RoomsPanel"]
 layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="RoomsTitleLabel" type="Label" parent="Root/Stack/BodyRow/RoomsPanel/RoomsVBox"]
+layout_mode = 2
+text = "Available Rooms"
+
+[node name="RoomCountLabel" type="Label" parent="Root/Stack/BodyRow/RoomsPanel/RoomsVBox"]
+layout_mode = 2
+text = "0 room(s)"
+
+[node name="RoomsList" type="ItemList" parent="Root/Stack/BodyRow/RoomsPanel/RoomsVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+select_mode = 0
+
+[node name="SidePanel" type="PanelContainer" parent="Root/Stack/BodyRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="SideVBox" type="VBoxContainer" parent="Root/Stack/BodyRow/SidePanel"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="SelectedTitleLabel" type="Label" parent="Root/Stack/BodyRow/SidePanel/SideVBox"]
+layout_mode = 2
+text = "Selected Room"
+
+[node name="SelectedRoomInput" type="LineEdit" parent="Root/Stack/BodyRow/SidePanel/SideVBox"]
+layout_mode = 2
+placeholder_text = "Select a room"
+editable = false
+
+[node name="SelectedRoomMetaLabel" type="Label" parent="Root/Stack/BodyRow/SidePanel/SideVBox"]
+layout_mode = 2
+text = "Status: -"
+
+[node name="JoinButton" type="Button" parent="Root/Stack/BodyRow/SidePanel/SideVBox"]
+layout_mode = 2
+text = "Choose Role & Join"
+
+[node name="CreateSectionLabel" type="Label" parent="Root/Stack/BodyRow/SidePanel/SideVBox"]
+layout_mode = 2
+text = "Create New Room"
+
+[node name="NewRoomNameInput" type="LineEdit" parent="Root/Stack/BodyRow/SidePanel/SideVBox"]
+layout_mode = 2
+text = "My Room"
+placeholder_text = "Room name"
+
+[node name="CreateConfigRow" type="HBoxContainer" parent="Root/Stack/BodyRow/SidePanel/SideVBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="BoardSizeInput" type="SpinBox" parent="Root/Stack/BodyRow/SidePanel/SideVBox/CreateConfigRow"]
+layout_mode = 2
+size_flags_horizontal = 3
 custom_minimum_size = Vector2(100, 0)
 value = 5.0
 min_value = 3.0
@@ -66,19 +123,7 @@ max_value = 9.0
 rounded = true
 step = 1.0
 
-[node name="CreateButton" type="Button" parent="Root/Stack/CreateRow"]
-layout_mode = 2
-text = "Create"
-
-[node name="JoinRow" type="HBoxContainer" parent="Root/Stack"]
-layout_mode = 2
-theme_override_constants/separation = 6
-
-[node name="SelectedRoomInput" type="LineEdit" parent="Root/Stack/JoinRow"]
+[node name="CreateButton" type="Button" parent="Root/Stack/BodyRow/SidePanel/SideVBox/CreateConfigRow"]
 layout_mode = 2
 size_flags_horizontal = 3
-placeholder_text = "room id"
-
-[node name="JoinButton" type="Button" parent="Root/Stack/JoinRow"]
-layout_mode = 2
-text = "Select Role & Join"
+text = "Create"

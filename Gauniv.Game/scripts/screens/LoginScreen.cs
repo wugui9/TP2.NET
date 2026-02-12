@@ -24,17 +24,23 @@ public partial class LoginScreen : Control
 
     public override void _Ready()
     {
-        _hostInput = GetNode<LineEdit>("Root/Stack/ConnectionRow/HostInput");
-        _portInput = GetNode<SpinBox>("Root/Stack/ConnectionRow/PortInput");
+        _hostInput = GetNode<LineEdit>("Root/Stack/CardsRow/ConnectionCard/ConnectionStack/ConnectionRow/HostInput");
+        _portInput = GetNode<SpinBox>("Root/Stack/CardsRow/ConnectionCard/ConnectionStack/ConnectionRow/PortInput");
+        _connectButton = GetNode<Button>("Root/Stack/CardsRow/ConnectionCard/ConnectionStack/ConnectButton");
+        _emailInput = GetNode<LineEdit>("Root/Stack/CardsRow/AuthCard/AuthStack/AuthRow/EmailInput");
+        _passwordInput = GetNode<LineEdit>("Root/Stack/CardsRow/AuthCard/AuthStack/AuthRow/PasswordInput");
+        _loginButton = GetNode<Button>("Root/Stack/CardsRow/AuthCard/AuthStack/LoginButton");
+        _statusLabel = GetNode<Label>("Root/Stack/StatusPanel/StatusLabel");
+
         _portInput.Value = 7000;
-        _connectButton = GetNode<Button>("Root/Stack/ConnectionRow/ConnectButton");
-        _emailInput = GetNode<LineEdit>("Root/Stack/AuthRow/EmailInput");
-        _passwordInput = GetNode<LineEdit>("Root/Stack/AuthRow/PasswordInput");
-        _loginButton = GetNode<Button>("Root/Stack/AuthRow/LoginButton");
-        _statusLabel = GetNode<Label>("Root/Stack/StatusLabel");
 
         _connectButton.Pressed += OnConnectPressed;
         _loginButton.Pressed += OnLoginPressed;
+
+        GetNode<Button>("Root/Stack/CardsRow/AuthCard/AuthStack/QuickRow/QuickP1Button").Pressed += () => FillAccount("p1@test.com", "password");
+        GetNode<Button>("Root/Stack/CardsRow/AuthCard/AuthStack/QuickRow/QuickP2Button").Pressed += () => FillAccount("p2@test.com", "password");
+        GetNode<Button>("Root/Stack/CardsRow/AuthCard/AuthStack/QuickRow/QuickP3Button").Pressed += () => FillAccount("p3@test.com", "password");
+        GetNode<Button>("Root/Stack/CardsRow/AuthCard/AuthStack/QuickRow/QuickP4Button").Pressed += () => FillAccount("p4@test.com", "password");
 
         if (_hasPendingConnected)
         {
@@ -51,13 +57,15 @@ public partial class LoginScreen : Control
 
     public void SetConnectionState(bool connected)
     {
-        if (_connectButton is null)
+        if (_connectButton is null || _loginButton is null)
         {
             _pendingConnected = connected;
             _hasPendingConnected = true;
             return;
         }
+
         _connectButton.Text = connected ? "Disconnect" : "Connect";
+        _loginButton.Disabled = !connected;
     }
 
     public void SetStatusText(string text)
@@ -68,7 +76,14 @@ public partial class LoginScreen : Control
             _hasPendingStatus = true;
             return;
         }
+
         _statusLabel.Text = text;
+    }
+
+    private void FillAccount(string email, string password)
+    {
+        _emailInput.Text = email;
+        _passwordInput.Text = password;
     }
 
     private void OnConnectPressed()

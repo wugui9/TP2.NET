@@ -16,36 +16,67 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 10.0
-offset_top = 10.0
-offset_right = -10.0
-offset_bottom = -10.0
+offset_left = 16.0
+offset_top = 16.0
+offset_right = -16.0
+offset_bottom = -16.0
 grow_horizontal = 2
 grow_vertical = 2
 
 [node name="Stack" type="VBoxContainer" parent="Root"]
 layout_mode = 2
-theme_override_constants/separation = 8
+theme_override_constants/separation = 12
 
-[node name="TitleLabel" type="Label" parent="Root/Stack"]
+[node name="HeaderPanel" type="PanelContainer" parent="Root/Stack"]
 layout_mode = 2
-text = "Login"
 
-[node name="StatusLabel" type="Label" parent="Root/Stack"]
+[node name="HeaderBox" type="VBoxContainer" parent="Root/Stack/HeaderPanel"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="TitleLabel" type="Label" parent="Root/Stack/HeaderPanel/HeaderBox"]
+layout_mode = 2
+text = "Game Gateway"
+
+[node name="SubtitleLabel" type="Label" parent="Root/Stack/HeaderPanel/HeaderBox"]
+layout_mode = 2
+text = "Connect to server and login to start matchmaking"
+
+[node name="StatusPanel" type="PanelContainer" parent="Root/Stack"]
+layout_mode = 2
+
+[node name="StatusLabel" type="Label" parent="Root/Stack/StatusPanel"]
 layout_mode = 2
 text = "Please connect first."
 
-[node name="ConnectionRow" type="HBoxContainer" parent="Root/Stack"]
+[node name="CardsRow" type="HBoxContainer" parent="Root/Stack"]
 layout_mode = 2
-theme_override_constants/separation = 6
+size_flags_vertical = 3
+theme_override_constants/separation = 12
 
-[node name="HostInput" type="LineEdit" parent="Root/Stack/ConnectionRow"]
+[node name="ConnectionCard" type="PanelContainer" parent="Root/Stack/CardsRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ConnectionStack" type="VBoxContainer" parent="Root/Stack/CardsRow/ConnectionCard"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="ConnectionTitle" type="Label" parent="Root/Stack/CardsRow/ConnectionCard/ConnectionStack"]
+layout_mode = 2
+text = "Server"
+
+[node name="ConnectionRow" type="HBoxContainer" parent="Root/Stack/CardsRow/ConnectionCard/ConnectionStack"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="HostInput" type="LineEdit" parent="Root/Stack/CardsRow/ConnectionCard/ConnectionStack/ConnectionRow"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "127.0.0.1"
 placeholder_text = "Host"
 
-[node name="PortInput" type="SpinBox" parent="Root/Stack/ConnectionRow"]
+[node name="PortInput" type="SpinBox" parent="Root/Stack/CardsRow/ConnectionCard/ConnectionStack/ConnectionRow"]
 layout_mode = 2
 custom_minimum_size = Vector2(120, 0)
 value = 7000.0
@@ -54,27 +85,67 @@ max_value = 65535.0
 rounded = true
 step = 1.0
 
-[node name="ConnectButton" type="Button" parent="Root/Stack/ConnectionRow"]
+[node name="ConnectButton" type="Button" parent="Root/Stack/CardsRow/ConnectionCard/ConnectionStack"]
 layout_mode = 2
 text = "Connect"
 
-[node name="AuthRow" type="HBoxContainer" parent="Root/Stack"]
+[node name="ConnectionHintLabel" type="Label" parent="Root/Stack/CardsRow/ConnectionCard/ConnectionStack"]
 layout_mode = 2
-theme_override_constants/separation = 6
+text = "Run Gauniv.GameServer on port 7000"
 
-[node name="EmailInput" type="LineEdit" parent="Root/Stack/AuthRow"]
+[node name="AuthCard" type="PanelContainer" parent="Root/Stack/CardsRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="AuthStack" type="VBoxContainer" parent="Root/Stack/CardsRow/AuthCard"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="AuthTitle" type="Label" parent="Root/Stack/CardsRow/AuthCard/AuthStack"]
+layout_mode = 2
+text = "Player Login"
+
+[node name="AuthRow" type="HBoxContainer" parent="Root/Stack/CardsRow/AuthCard/AuthStack"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="EmailInput" type="LineEdit" parent="Root/Stack/CardsRow/AuthCard/AuthStack/AuthRow"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "p1@test.com"
 placeholder_text = "Email"
 
-[node name="PasswordInput" type="LineEdit" parent="Root/Stack/AuthRow"]
+[node name="PasswordInput" type="LineEdit" parent="Root/Stack/CardsRow/AuthCard/AuthStack/AuthRow"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "password"
 placeholder_text = "Password"
 secret = true
 
-[node name="LoginButton" type="Button" parent="Root/Stack/AuthRow"]
+[node name="QuickRow" type="HBoxContainer" parent="Root/Stack/CardsRow/AuthCard/AuthStack"]
 layout_mode = 2
-text = "Login"
+theme_override_constants/separation = 6
+
+[node name="QuickP1Button" type="Button" parent="Root/Stack/CardsRow/AuthCard/AuthStack/QuickRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Use P1"
+
+[node name="QuickP2Button" type="Button" parent="Root/Stack/CardsRow/AuthCard/AuthStack/QuickRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Use P2"
+
+[node name="QuickP3Button" type="Button" parent="Root/Stack/CardsRow/AuthCard/AuthStack/QuickRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Use P3"
+
+[node name="QuickP4Button" type="Button" parent="Root/Stack/CardsRow/AuthCard/AuthStack/QuickRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Use P4"
+
+[node name="LoginButton" type="Button" parent="Root/Stack/CardsRow/AuthCard/AuthStack"]
+layout_mode = 2
+text = "Login & Enter Lobby"

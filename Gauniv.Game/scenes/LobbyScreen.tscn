@@ -16,70 +16,104 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 10.0
-offset_top = 10.0
-offset_right = -10.0
-offset_bottom = -10.0
+offset_left = 16.0
+offset_top = 16.0
+offset_right = -16.0
+offset_bottom = -16.0
 grow_horizontal = 2
 grow_vertical = 2
 
 [node name="Stack" type="VBoxContainer" parent="Root"]
 layout_mode = 2
-theme_override_constants/separation = 8
+theme_override_constants/separation = 12
 
-[node name="HeaderLabel" type="Label" parent="Root/Stack"]
+[node name="HeaderPanel" type="PanelContainer" parent="Root/Stack"]
+layout_mode = 2
+
+[node name="HeaderStack" type="VBoxContainer" parent="Root/Stack/HeaderPanel"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="HeaderLabel" type="Label" parent="Root/Stack/HeaderPanel/HeaderStack"]
 layout_mode = 2
 text = "Room"
 
-[node name="PhaseLabel" type="Label" parent="Root/Stack"]
+[node name="PhaseLabel" type="Label" parent="Root/Stack/HeaderPanel/HeaderStack"]
 layout_mode = 2
 text = "Phase"
 
-[node name="Lists" type="HBoxContainer" parent="Root/Stack"]
+[node name="MiddleRow" type="HBoxContainer" parent="Root/Stack"]
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_constants/separation = 8
+theme_override_constants/separation = 12
 
-[node name="PlayersPane" type="VBoxContainer" parent="Root/Stack/Lists"]
+[node name="PlayersPanel" type="PanelContainer" parent="Root/Stack/MiddleRow"]
 layout_mode = 2
 size_flags_horizontal = 3
-
-[node name="PlayersTitle" type="Label" parent="Root/Stack/Lists/PlayersPane"]
-layout_mode = 2
-text = "Players"
-
-[node name="PlayersList" type="ItemList" parent="Root/Stack/Lists/PlayersPane"]
-layout_mode = 2
 size_flags_vertical = 3
 
-[node name="ObserversPane" type="VBoxContainer" parent="Root/Stack/Lists"]
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="ObserversTitle" type="Label" parent="Root/Stack/Lists/ObserversPane"]
-layout_mode = 2
-text = "Observers"
-
-[node name="ObserversList" type="ItemList" parent="Root/Stack/Lists/ObserversPane"]
-layout_mode = 2
-size_flags_vertical = 3
-
-[node name="ActionRow" type="HBoxContainer" parent="Root/Stack"]
+[node name="PlayersPane" type="VBoxContainer" parent="Root/Stack/MiddleRow/PlayersPanel"]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="ReadyCheck" type="CheckBox" parent="Root/Stack/ActionRow"]
+[node name="PlayersTitle" type="Label" parent="Root/Stack/MiddleRow/PlayersPanel/PlayersPane"]
+layout_mode = 2
+text = "Players"
+
+[node name="PlayersCountLabel" type="Label" parent="Root/Stack/MiddleRow/PlayersPanel/PlayersPane"]
+layout_mode = 2
+text = "0 players"
+
+[node name="PlayersList" type="ItemList" parent="Root/Stack/MiddleRow/PlayersPanel/PlayersPane"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ControlPanel" type="PanelContainer" parent="Root/Stack/MiddleRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="ControlStack" type="VBoxContainer" parent="Root/Stack/MiddleRow/ControlPanel"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="RoleHintLabel" type="Label" parent="Root/Stack/MiddleRow/ControlPanel/ControlStack"]
+layout_mode = 2
+text = "Role hint"
+
+[node name="ReadyCheck" type="CheckBox" parent="Root/Stack/MiddleRow/ControlPanel/ControlStack"]
 layout_mode = 2
 text = "Ready"
 
-[node name="ReadyButton" type="Button" parent="Root/Stack/ActionRow"]
+[node name="ReadyButton" type="Button" parent="Root/Stack/MiddleRow/ControlPanel/ControlStack"]
 layout_mode = 2
 text = "Send Ready"
 
-[node name="OpenGameButton" type="Button" parent="Root/Stack/ActionRow"]
+[node name="OpenGameButton" type="Button" parent="Root/Stack/MiddleRow/ControlPanel/ControlStack"]
 layout_mode = 2
 text = "Open Game"
 
-[node name="LeaveButton" type="Button" parent="Root/Stack/ActionRow"]
+[node name="LeaveButton" type="Button" parent="Root/Stack/MiddleRow/ControlPanel/ControlStack"]
 layout_mode = 2
 text = "Leave Room"
+
+[node name="ObserversPanel" type="PanelContainer" parent="Root/Stack/MiddleRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="ObserversPane" type="VBoxContainer" parent="Root/Stack/MiddleRow/ObserversPanel"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="ObserversTitle" type="Label" parent="Root/Stack/MiddleRow/ObserversPanel/ObserversPane"]
+layout_mode = 2
+text = "Observers"
+
+[node name="ObserversCountLabel" type="Label" parent="Root/Stack/MiddleRow/ObserversPanel/ObserversPane"]
+layout_mode = 2
+text = "0 observers"
+
+[node name="ObserversList" type="ItemList" parent="Root/Stack/MiddleRow/ObserversPanel/ObserversPane"]
+layout_mode = 2
+size_flags_vertical = 3

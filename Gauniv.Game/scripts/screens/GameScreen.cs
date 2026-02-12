@@ -18,19 +18,19 @@ public partial class GameScreen : Control
     private GridContainer _boardGrid = default!;
 
     private readonly List<Button> _cellButtons = new();
-    private int _boardSize = 0;
+    private int _boardSize;
     private int? _pendingBoardSize;
     private PendingGameState? _pendingGameState;
 
     public override void _Ready()
     {
-        _headerLabel = GetNode<Label>("Root/Stack/HeaderLabel");
-        _phaseLabel = GetNode<Label>("Root/Stack/PhaseLabel");
-        _targetLabel = GetNode<Label>("Root/Stack/TargetLabel");
-        _instructionLabel = GetNode<Label>("Root/Stack/InstructionLabel");
-        _boardGrid = GetNode<GridContainer>("Root/Stack/BoardGrid");
+        _headerLabel = GetNode<Label>("Root/Stack/HudPanel/HudStack/HeaderLabel");
+        _phaseLabel = GetNode<Label>("Root/Stack/HudPanel/HudStack/PhaseLabel");
+        _targetLabel = GetNode<Label>("Root/Stack/ArenaRow/BoardPanel/BoardStack/TargetLabel");
+        _instructionLabel = GetNode<Label>("Root/Stack/ArenaRow/SidePanel/SideStack/InstructionLabel");
+        _boardGrid = GetNode<GridContainer>("Root/Stack/ArenaRow/BoardPanel/BoardStack/BoardGrid");
 
-        GetNode<Button>("Root/Stack/ActionRow/BackLobbyButton").Pressed += () => EmitSignal(SignalName.BackToLobbyRequested);
+        GetNode<Button>("Root/Stack/ArenaRow/SidePanel/SideStack/BackLobbyButton").Pressed += () => EmitSignal(SignalName.BackToLobbyRequested);
 
         if (_pendingBoardSize.HasValue)
         {
@@ -80,10 +80,11 @@ public partial class GameScreen : Control
             {
                 var button = new Button
                 {
-                    Text = $"{row},{col}",
+                    Text = string.Empty,
                     SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
                     SizeFlagsVertical = Control.SizeFlags.ExpandFill,
-                    CustomMinimumSize = new Vector2(52, 52)
+                    CustomMinimumSize = new Vector2(76, 76),
+                    TooltipText = $"Cell ({row},{col})"
                 };
 
                 var localRow = row;
@@ -96,7 +97,7 @@ public partial class GameScreen : Control
         }
     }
 
-    public void SetGameState(string roomId, string phase, string role, bool isMj, string instruction, int? targetRow, int?targetCol, bool canAct)
+    public void SetGameState(string roomId, string phase, string role, bool isMj, string instruction, int? targetRow, int? targetCol, bool canAct)
     {
         if (_headerLabel is null || _phaseLabel is null || _targetLabel is null || _instructionLabel is null)
         {
@@ -104,22 +105,38 @@ public partial class GameScreen : Control
             return;
         }
 
-        _headerLabel.Text = $"Room: {roomId} | Role: {role}" + (isMj ? " | You are MJ" : string.Empty);
-        _phaseLabel.Text = $"Phase: {phase}";
-        _instructionLabel.Text = instruction;
+        _headerLabel.Text = $"ROOM {roomId} | ROLE {role}" + (isMj ? " | MJ" : string.Empty);
+        _phaseLabel.Text = $"PHASE: {phase}";
 
         if (targetRow.HasValue && targetCol.HasValue)
         {
-            _targetLabel.Text = $"Target: ({targetRow.Value},{targetCol.Value})";
+            _targetLabel.Text = $"TARGET CELL: ({targetRow.Value},{targetCol.Value})";
         }
         else
         {
-            _targetLabel.Text = "Target: not selected";
+            _targetLabel.Text = "TARGET CELL: pending";
         }
 
-        foreach (var btn in _cellButtons)
+        _instructionLabel.Text = canAct
+            ? $"ACTION: {instruction}"
+            : $"WATCH: {instruction}";
+
+        for (var i = 0; i < _cellButtons.Count; i++)
         {
-            btn.Disabled = !canAct;
+            var button = _cellButtons[i];
+            button.Disabled = !canAct;
+            button.Modulate = Colors.White;
+        }
+
+        if (targetRow.HasValue && targetCol.HasValue && _boardSize > 0)
+        {
+            var index = targetRow.Value * _boardSize + targetCol.Value;
+            if (index >= 0 && index < _cellButtons.Count)
+            {
+                _cellButtons[index].Modulate = canAct
+                    ? new Color(0.72f, 1.0f, 0.82f)
+                    : new Color(0.74f, 0.88f, 1.0f);
+            }
         }
     }
 

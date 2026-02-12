@@ -16,37 +16,64 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 10.0
-offset_top = 10.0
-offset_right = -10.0
-offset_bottom = -10.0
+offset_left = 16.0
+offset_top = 16.0
+offset_right = -16.0
+offset_bottom = -16.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Stack" type="VBoxContainer" parent="Root"]
+[node name="Center" type="CenterContainer" parent="Root"]
 layout_mode = 2
-theme_override_constants/separation = 8
 
-[node name="TitleLabel" type="Label" parent="Root/Stack"]
+[node name="Card" type="PanelContainer" parent="Root/Center"]
 layout_mode = 2
-text = "Role Selection"
+custom_minimum_size = Vector2(560, 0)
 
-[node name="RoomLabel" type="Label" parent="Root/Stack"]
+[node name="Stack" type="VBoxContainer" parent="Root/Center/Card"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="TitleLabel" type="Label" parent="Root/Center/Card/Stack"]
+layout_mode = 2
+text = "Select Role"
+
+[node name="RoomLabel" type="Label" parent="Root/Center/Card/Stack"]
 layout_mode = 2
 text = "Room:"
 
-[node name="RoleOption" type="OptionButton" parent="Root/Stack"]
+[node name="HintLabel" type="Label" parent="Root/Center/Card/Stack"]
 layout_mode = 2
-custom_minimum_size = Vector2(180, 0)
+text = "Player can play and rank. Observer can only watch."
 
-[node name="ButtonRow" type="HBoxContainer" parent="Root/Stack"]
+[node name="RoleRow" type="HBoxContainer" parent="Root/Center/Card/Stack"]
 layout_mode = 2
-theme_override_constants/separation = 6
+theme_override_constants/separation = 10
 
-[node name="ConfirmButton" type="Button" parent="Root/Stack/ButtonRow"]
+[node name="PlayerButton" type="Button" parent="Root/Center/Card/Stack/RoleRow"]
 layout_mode = 2
-text = "Confirm Join"
+size_flags_horizontal = 3
+text = "Player"
 
-[node name="BackButton" type="Button" parent="Root/Stack/ButtonRow"]
+[node name="ObserverButton" type="Button" parent="Root/Center/Card/Stack/RoleRow"]
 layout_mode = 2
+size_flags_horizontal = 3
+text = "Observer"
+
+[node name="SelectedRoleLabel" type="Label" parent="Root/Center/Card/Stack"]
+layout_mode = 2
+text = "Selected: player"
+
+[node name="ButtonRow" type="HBoxContainer" parent="Root/Center/Card/Stack"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="BackButton" type="Button" parent="Root/Center/Card/Stack/ButtonRow"]
+layout_mode = 2
+size_flags_horizontal = 3
 text = "Back"
+
+[node name="ConfirmButton" type="Button" parent="Root/Center/Card/Stack/ButtonRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Confirm Join"
