@@ -52,15 +52,19 @@ public partial class Main : Control
 
     public override void _Ready()
     {
+        Theme = GlassTheme.Build();
+
         _statusLabel = GetNode<Label>("Root/Stack/StatusLabel");
-        _screenHost = GetNode<MarginContainer>("Root/Stack/ScreenHost");
-        _logOutput = GetNode<RichTextLabel>("Root/Stack/LogOutput");
+        _screenHost = GetNode<MarginContainer>("Root/Stack/ScreenFrame/ScreenHost");
+        _logOutput = GetNode<RichTextLabel>("Root/Stack/LogFrame/LogOutput");
         _network = GetNode<NetworkClient>("NetworkClient");
 
         _network.Connected += OnConnected;
         _network.Disconnected += OnDisconnected;
         _network.TransportError += OnTransportError;
         _network.MessageReceived += OnMessageReceived;
+
+        GetNode<Label>("Root/Stack/TitleLabel").Text = "Gauniv Glass Arena";
 
         SetStatus("Disconnected");
         try

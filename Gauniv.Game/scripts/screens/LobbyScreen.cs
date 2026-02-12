@@ -26,8 +26,8 @@ public partial class LobbyScreen : Control
     {
         _headerLabel = GetNode<Label>("Root/Stack/HeaderLabel");
         _phaseLabel = GetNode<Label>("Root/Stack/PhaseLabel");
-        _playersList = GetNode<ItemList>("Root/Stack/Lists/PlayersList");
-        _observersList = GetNode<ItemList>("Root/Stack/Lists/ObserversList");
+        _playersList = GetNode<ItemList>("Root/Stack/Lists/PlayersPane/PlayersList");
+        _observersList = GetNode<ItemList>("Root/Stack/Lists/ObserversPane/ObserversList");
         _readyCheck = GetNode<CheckBox>("Root/Stack/ActionRow/ReadyCheck");
         _readyButton = GetNode<Button>("Root/Stack/ActionRow/ReadyButton");
 
