@@ -126,7 +126,16 @@ public partial class LobbyScreen : Control
             return;
         }
 
-        _readyButton.Text = _selfReady ? "✓ Ready" : "Ready";
+        if (_selfReady)
+        {
+            _readyButton.Text = "✓ Ready";
+            _readyButton.SelfModulate = new Color(0.80f, 1.0f, 0.86f);
+        }
+        else
+        {
+            _readyButton.Text = "Ready";
+            _readyButton.SelfModulate = Colors.White;
+        }
     }
 
     private sealed record PendingLobbyState(

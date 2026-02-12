@@ -47,83 +47,98 @@ text = ""
 layout_mode = 2
 text = "Refresh"
 
-[node name="BodyRow" type="HBoxContainer" parent="Root/Stack"]
+[node name="RoomsPanel" type="PanelContainer" parent="Root/Stack"]
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_constants/separation = 12
 
-[node name="RoomsPanel" type="PanelContainer" parent="Root/Stack/BodyRow"]
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3
-
-[node name="RoomsVBox" type="VBoxContainer" parent="Root/Stack/BodyRow/RoomsPanel"]
+[node name="RoomsVBox" type="VBoxContainer" parent="Root/Stack/RoomsPanel"]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="RoomsTitleLabel" type="Label" parent="Root/Stack/BodyRow/RoomsPanel/RoomsVBox"]
+[node name="RoomCountLabel" type="Label" parent="Root/Stack/RoomsPanel/RoomsVBox"]
 layout_mode = 2
-text = "Available Rooms"
+text = "0 room(s) available"
 
-[node name="RoomCountLabel" type="Label" parent="Root/Stack/BodyRow/RoomsPanel/RoomsVBox"]
-layout_mode = 2
-text = "0 room(s)"
-
-[node name="RoomsList" type="ItemList" parent="Root/Stack/BodyRow/RoomsPanel/RoomsVBox"]
+[node name="RoomsScroll" type="ScrollContainer" parent="Root/Stack/RoomsPanel/RoomsVBox"]
 layout_mode = 2
 size_flags_vertical = 3
-select_mode = 0
 
-[node name="SidePanel" type="PanelContainer" parent="Root/Stack/BodyRow"]
+[node name="RoomsFlow" type="VBoxContainer" parent="Root/Stack/RoomsPanel/RoomsVBox/RoomsScroll"]
 layout_mode = 2
 size_flags_horizontal = 3
-size_flags_vertical = 3
+theme_override_constants/separation = 10
 
-[node name="SideVBox" type="VBoxContainer" parent="Root/Stack/BodyRow/SidePanel"]
+[node name="CreateFloatingButton" type="Button" parent="."]
+layout_mode = 1
+anchors_preset = 10
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -190.0
+offset_top = 26.0
+offset_right = -16.0
+offset_bottom = 66.0
+grow_horizontal = 0
+text = "+ Create Room"
+
+[node name="CreateOverlay" type="ColorRect" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+color = Color(0, 0, 0, 0.45)
+
+[node name="CreateCenter" type="CenterContainer" parent="CreateOverlay"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="CreateDialog" type="PanelContainer" parent="CreateOverlay/CreateCenter"]
 layout_mode = 2
-theme_override_constants/separation = 8
+custom_minimum_size = Vector2(520, 0)
 
-[node name="SelectedTitleLabel" type="Label" parent="Root/Stack/BodyRow/SidePanel/SideVBox"]
+[node name="DialogStack" type="VBoxContainer" parent="CreateOverlay/CreateCenter/CreateDialog"]
 layout_mode = 2
-text = "Selected Room"
+theme_override_constants/separation = 10
 
-[node name="SelectedRoomInput" type="LineEdit" parent="Root/Stack/BodyRow/SidePanel/SideVBox"]
-layout_mode = 2
-placeholder_text = "Select a room"
-editable = false
-
-[node name="SelectedRoomMetaLabel" type="Label" parent="Root/Stack/BodyRow/SidePanel/SideVBox"]
-layout_mode = 2
-text = "Status: -"
-
-[node name="JoinButton" type="Button" parent="Root/Stack/BodyRow/SidePanel/SideVBox"]
-layout_mode = 2
-text = "Choose Role & Join"
-
-[node name="CreateSectionLabel" type="Label" parent="Root/Stack/BodyRow/SidePanel/SideVBox"]
+[node name="DialogTitleLabel" type="Label" parent="CreateOverlay/CreateCenter/CreateDialog/DialogStack"]
 layout_mode = 2
 text = "Create New Room"
 
-[node name="NewRoomNameInput" type="LineEdit" parent="Root/Stack/BodyRow/SidePanel/SideVBox"]
+[node name="DialogHintLabel" type="Label" parent="CreateOverlay/CreateCenter/CreateDialog/DialogStack"]
+layout_mode = 2
+text = "Set room name and board size"
+
+[node name="NewRoomNameInput" type="LineEdit" parent="CreateOverlay/CreateCenter/CreateDialog/DialogStack"]
 layout_mode = 2
 text = "My Room"
 placeholder_text = "Room name"
 
-[node name="CreateConfigRow" type="HBoxContainer" parent="Root/Stack/BodyRow/SidePanel/SideVBox"]
+[node name="BoardSizeInput" type="SpinBox" parent="CreateOverlay/CreateCenter/CreateDialog/DialogStack"]
 layout_mode = 2
-theme_override_constants/separation = 8
-
-[node name="BoardSizeInput" type="SpinBox" parent="Root/Stack/BodyRow/SidePanel/SideVBox/CreateConfigRow"]
-layout_mode = 2
-size_flags_horizontal = 3
-custom_minimum_size = Vector2(100, 0)
+custom_minimum_size = Vector2(120, 0)
 value = 5.0
 min_value = 3.0
 max_value = 9.0
 rounded = true
 step = 1.0
 
-[node name="CreateButton" type="Button" parent="Root/Stack/BodyRow/SidePanel/SideVBox/CreateConfigRow"]
+[node name="DialogButtons" type="HBoxContainer" parent="CreateOverlay/CreateCenter/CreateDialog/DialogStack"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="DialogCancelButton" type="Button" parent="CreateOverlay/CreateCenter/CreateDialog/DialogStack/DialogButtons"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Cancel"
+
+[node name="DialogCreateButton" type="Button" parent="CreateOverlay/CreateCenter/CreateDialog/DialogStack/DialogButtons"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Create"

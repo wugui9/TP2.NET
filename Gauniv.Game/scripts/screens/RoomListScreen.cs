@@ -17,37 +17,43 @@ public partial class RoomListScreen : Control
 
     private Label _statusLabel = default!;
     private Label _roomCountLabel = default!;
-    private ItemList _roomsList = default!;
-    private LineEdit _selectedRoomInput = default!;
-    private Label _selectedRoomMetaLabel = default!;
+    private VBoxContainer _roomsFlow = default!;
+    private Button _createFloatingButton = default!;
+    private ColorRect _createOverlay = default!;
     private LineEdit _newRoomNameInput = default!;
     private SpinBox _boardSizeInput = default!;
-    private Button _joinButton = default!;
+    private Button _dialogCancelButton = default!;
+    private Button _dialogCreateButton = default!;
 
     private readonly Dictionary<string, RoomSummaryModel> _roomsById = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, PanelContainer> _roomCards = new(StringComparer.OrdinalIgnoreCase);
 
     private string _pendingStatus = string.Empty;
     private bool _hasPendingStatus;
-    private string _pendingSelectedRoom = string.Empty;
+    private string _pendingSelectedRoomId = string.Empty;
     private bool _hasPendingSelectedRoom;
     private IReadOnlyList<RoomSummaryModel>? _pendingRooms;
+    private string _selectedRoomId = string.Empty;
 
     public override void _Ready()
     {
         _statusLabel = GetNode<Label>("Root/Stack/TopBar/TopRow/StatusLabel");
-        _roomCountLabel = GetNode<Label>("Root/Stack/BodyRow/RoomsPanel/RoomsVBox/RoomCountLabel");
-        _roomsList = GetNode<ItemList>("Root/Stack/BodyRow/RoomsPanel/RoomsVBox/RoomsList");
-        _selectedRoomInput = GetNode<LineEdit>("Root/Stack/BodyRow/SidePanel/SideVBox/SelectedRoomInput");
-        _selectedRoomMetaLabel = GetNode<Label>("Root/Stack/BodyRow/SidePanel/SideVBox/SelectedRoomMetaLabel");
-        _newRoomNameInput = GetNode<LineEdit>("Root/Stack/BodyRow/SidePanel/SideVBox/NewRoomNameInput");
-        _boardSizeInput = GetNode<SpinBox>("Root/Stack/BodyRow/SidePanel/SideVBox/CreateConfigRow/BoardSizeInput");
-        _joinButton = GetNode<Button>("Root/Stack/BodyRow/SidePanel/SideVBox/JoinButton");
+        _roomCountLabel = GetNode<Label>("Root/Stack/RoomsPanel/RoomsVBox/RoomCountLabel");
+        _roomsFlow = GetNode<VBoxContainer>("Root/Stack/RoomsPanel/RoomsVBox/RoomsScroll/RoomsFlow");
+        _createFloatingButton = GetNode<Button>("CreateFloatingButton");
+        _createOverlay = GetNode<ColorRect>("CreateOverlay");
+        _newRoomNameInput = GetNode<LineEdit>("CreateOverlay/CreateCenter/CreateDialog/DialogStack/NewRoomNameInput");
+        _boardSizeInput = GetNode<SpinBox>("CreateOverlay/CreateCenter/CreateDialog/DialogStack/BoardSizeInput");
+        _dialogCancelButton = GetNode<Button>("CreateOverlay/CreateCenter/CreateDialog/DialogStack/DialogButtons/DialogCancelButton");
+        _dialogCreateButton = GetNode<Button>("CreateOverlay/CreateCenter/CreateDialog/DialogStack/DialogButtons/DialogCreateButton");
 
         GetNode<Button>("Root/Stack/TopBar/TopRow/RefreshButton").Pressed += () => EmitSignal(SignalName.RefreshRequested);
-        GetNode<Button>("Root/Stack/BodyRow/SidePanel/SideVBox/CreateConfigRow/CreateButton").Pressed += OnCreatePressed;
-        _joinButton.Pressed += OnJoinPressed;
-        _roomsList.ItemSelected += OnRoomSelected;
-        _joinButton.Disabled = true;
+        _createFloatingButton.Pressed += OpenCreateDialog;
+        _dialogCancelButton.Pressed += CloseCreateDialog;
+        _dialogCreateButton.Pressed += OnCreatePressed;
+        _newRoomNameInput.TextSubmitted += _ => OnCreatePressed();
+
+        _createOverlay.Visible = false;
 
         if (_hasPendingStatus)
         {
@@ -57,7 +63,7 @@ public partial class RoomListScreen : Control
 
         if (_hasPendingSelectedRoom)
         {
-            SetSelectedRoom(_pendingSelectedRoom);
+            SetSelectedRoom(_pendingSelectedRoomId);
             _hasPendingSelectedRoom = false;
         }
 
@@ -65,6 +71,20 @@ public partial class RoomListScreen : Control
         {
             SetRooms(_pendingRooms);
             _pendingRooms = null;
+        }
+    }
+
+    public override void _UnhandledInput(InputEvent @event)
+    {
+        if (!_createOverlay.Visible)
+        {
+            return;
+        }
+
+        if (@event is InputEventKey keyEvent && keyEvent.Pressed && keyEvent.Keycode == Key.Escape)
+        {
+            CloseCreateDialog();
+            GetViewport().SetInputAsHandled();
         }
     }
 
@@ -82,27 +102,35 @@ public partial class RoomListScreen : Control
 
     public void SetSelectedRoom(string roomId)
     {
-        if (_selectedRoomInput is null)
+        if (_roomsFlow is null)
         {
-            _pendingSelectedRoom = roomId;
+            _pendingSelectedRoomId = roomId;
             _hasPendingSelectedRoom = true;
             return;
         }
 
-        _selectedRoomInput.Text = roomId;
-        UpdateSelectedMeta(roomId);
+        _selectedRoomId = roomId?.Trim() ?? string.Empty;
+        UpdateCardHighlights();
     }
 
     public void SetRooms(IReadOnlyList<RoomSummaryModel> rooms)
     {
-        if (_roomsList is null)
+        if (_roomsFlow is null)
         {
             _pendingRooms = rooms;
             return;
         }
 
+        foreach (var child in _roomsFlow.GetChildren())
+        {
+            if (child is Node node)
+            {
+                node.QueueFree();
+            }
+        }
+
         _roomsById.Clear();
-        _roomsList.Clear();
+        _roomCards.Clear();
 
         for (var i = 0; i < rooms.Count; i++)
         {
@@ -115,86 +143,143 @@ public partial class RoomListScreen : Control
 
             _roomsById[roomId] = room;
 
-            var roomName = string.IsNullOrWhiteSpace(room.RoomName) ? roomId : room.RoomName;
-            var phase = room.Phase ?? "Unknown";
-            var maxPlayers = Math.Max(room.MaxPlayers, 4);
-            var status = room.Players >= maxPlayers ? "Full" : phase;
+            var card = BuildRoomCard(room);
+            _roomsFlow.AddChild(card);
+            _roomCards[roomId] = card;
+        }
 
-            var text = $"{roomName}  [{roomId}]  |  {status}  |  {room.Players}/{maxPlayers}  |  Obs {room.Observers}";
-            var index = _roomsList.GetItemCount();
-            _roomsList.AddItem(text);
-            _roomsList.SetItemMetadata(index, roomId);
+        if (_roomCards.Count == 0)
+        {
+            var empty = new Label
+            {
+                Text = "No rooms yet. Create one to start.",
+                AutowrapMode = TextServer.AutowrapMode.WordSmart,
+                SelfModulate = new Color(0.85f, 0.92f, 0.98f)
+            };
+            _roomsFlow.AddChild(empty);
+        }
 
-            var color = status switch
+        _roomCountLabel.Text = $"{_roomCards.Count} room(s) available";
+
+        if (!string.IsNullOrWhiteSpace(_selectedRoomId) && !_roomCards.ContainsKey(_selectedRoomId))
+        {
+            _selectedRoomId = string.Empty;
+        }
+
+        if (string.IsNullOrWhiteSpace(_selectedRoomId) && _roomCards.Count > 0)
+        {
+            foreach (var roomId in _roomCards.Keys)
+            {
+                _selectedRoomId = roomId;
+                break;
+            }
+        }
+
+        UpdateCardHighlights();
+    }
+
+    private PanelContainer BuildRoomCard(RoomSummaryModel room)
+    {
+        var roomId = room.RoomId ?? string.Empty;
+        var roomName = string.IsNullOrWhiteSpace(room.RoomName) ? roomId : room.RoomName;
+        var phase = room.Phase ?? "Unknown";
+        var maxPlayers = Math.Max(room.MaxPlayers, 4);
+        var isFull = room.Players >= maxPlayers;
+        var status = isFull ? "Full" : phase;
+
+        var card = new PanelContainer
+        {
+            CustomMinimumSize = new Vector2(0, 92)
+        };
+
+        var row = new HBoxContainer();
+        row.AddThemeConstantOverride("separation", 10);
+        card.AddChild(row);
+
+        var info = new VBoxContainer
+        {
+            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill
+        };
+        info.AddThemeConstantOverride("separation", 2);
+        row.AddChild(info);
+
+        var title = new Label
+        {
+            Text = $"{roomName}   [{roomId}]"
+        };
+        info.AddChild(title);
+
+        var meta = new Label
+        {
+            Text = $"{status}  |  Players {room.Players}/{maxPlayers}  |  Obs {room.Observers}  |  Board {room.BoardSize}x{room.BoardSize}",
+            SelfModulate = status switch
             {
                 "Full" => new Color(1.0f, 0.74f, 0.74f),
                 "Waiting" => new Color(0.76f, 0.95f, 1.0f),
                 "MjSelecting" => new Color(0.90f, 0.82f, 1.0f),
                 "Clicking" => new Color(0.84f, 1.0f, 0.84f),
                 _ => new Color(0.9f, 0.95f, 1.0f)
-            };
-            _roomsList.SetItemCustomFgColor(index, color);
-        }
+            }
+        };
+        info.AddChild(meta);
 
-        _roomCountLabel.Text = $"{_roomsById.Count} room(s) available";
+        var joinButton = new Button
+        {
+            Text = isFull ? "Full" : "Join",
+            CustomMinimumSize = new Vector2(110, 42),
+            Disabled = isFull
+        };
+        joinButton.Pressed += () => OnJoinRoomPressed(roomId);
+        row.AddChild(joinButton);
 
-        var current = _selectedRoomInput.Text.Trim();
-        if (!string.IsNullOrWhiteSpace(current) && _roomsById.ContainsKey(current))
-        {
-            UpdateSelectedMeta(current);
-        }
-        else if (_roomsList.GetItemCount() > 0)
-        {
-            _roomsList.Select(0);
-            OnRoomSelected(0);
-        }
-        else
-        {
-            _selectedRoomInput.Text = string.Empty;
-            _selectedRoomMetaLabel.Text = "Status: -";
-            _joinButton.Disabled = true;
-        }
+        return card;
     }
 
-    private void OnRoomSelected(long index)
+    private void OnJoinRoomPressed(string roomId)
     {
-        var meta = _roomsList.GetItemMetadata((int)index);
-        if (meta.VariantType == Variant.Type.String)
-        {
-            var roomId = meta.AsString();
-            _selectedRoomInput.Text = roomId;
-            UpdateSelectedMeta(roomId);
-        }
-    }
-
-    private void UpdateSelectedMeta(string roomId)
-    {
-        if (!_roomsById.TryGetValue(roomId, out var room))
-        {
-            _selectedRoomMetaLabel.Text = "Status: unknown room";
-            return;
-        }
-
-        var phase = room.Phase ?? "Unknown";
-        var maxPlayers = Math.Max(room.MaxPlayers, 4);
-        var status = room.Players >= maxPlayers ? "Full" : phase;
-        _selectedRoomMetaLabel.Text = $"Status: {status} | Players {room.Players}/{maxPlayers} | Obs {room.Observers} | Board {room.BoardSize}x{room.BoardSize}";
-        _joinButton.Disabled = status == "Full";
-    }
-
-    private void OnCreatePressed()
-    {
-        EmitSignal(SignalName.CreateRoomRequested, _newRoomNameInput.Text.Trim(), (int)_boardSizeInput.Value);
-    }
-
-    private void OnJoinPressed()
-    {
-        var roomId = _selectedRoomInput.Text.Trim();
         if (string.IsNullOrWhiteSpace(roomId))
         {
             return;
         }
 
+        _selectedRoomId = roomId;
+        UpdateCardHighlights();
         EmitSignal(SignalName.JoinRequested, roomId);
+    }
+
+    private void UpdateCardHighlights()
+    {
+        foreach (var kv in _roomCards)
+        {
+            var selected = string.Equals(kv.Key, _selectedRoomId, StringComparison.OrdinalIgnoreCase);
+            kv.Value.SelfModulate = selected
+                ? new Color(0.86f, 0.96f, 1.0f)
+                : Colors.White;
+        }
+    }
+
+    private void OpenCreateDialog()
+    {
+        _createOverlay.Visible = true;
+        _newRoomNameInput.GrabFocus();
+        _newRoomNameInput.CaretColumn = _newRoomNameInput.Text.Length;
+    }
+
+    private void CloseCreateDialog()
+    {
+        _createOverlay.Visible = false;
+    }
+
+    private void OnCreatePressed()
+    {
+        var roomName = _newRoomNameInput.Text.Trim();
+        if (string.IsNullOrWhiteSpace(roomName))
+        {
+            roomName = "My Room";
+            _newRoomNameInput.Text = roomName;
+        }
+
+        EmitSignal(SignalName.CreateRoomRequested, roomName, (int)_boardSizeInput.Value);
+        _createOverlay.Visible = false;
     }
 }
