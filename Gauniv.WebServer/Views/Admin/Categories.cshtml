@@ -1,0 +1,69 @@
+@model Gauniv.WebServer.Models.AdminCategoriesViewModel
+@{
+    ViewData["Title"] = "Category Management";
+}
+
+<div class="admin-breadcrumb">
+    <a href="@Url.Action("Index", "Admin")">Dashboard</a>
+    <i class="bi bi-chevron-right" style="font-size: 0.7rem;"></i>
+    <span>Category Management</span>
+</div>
+
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <span class="text-muted" style="font-size: 0.85rem;">@Model.Categories.Count categories total</span>
+    <a href="@Url.Action("CreateCategory", "Admin")" class="btn btn-admin btn-admin-primary">
+        <i class="bi bi-plus-lg me-1"></i>Add Category
+    </a>
+</div>
+
+<div class="admin-table">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Category Name</th>
+                <th>Description</th>
+                <th>Games</th>
+                <th style="width: 160px;">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var local_cat in Model.Categories)
+            {
+                <tr>
+                    <td class="text-muted">#@local_cat.Id</td>
+                    <td class="fw-medium">@local_cat.Name</td>
+                    <td class="text-muted" style="max-width: 300px;">
+                        @(string.IsNullOrEmpty(local_cat.Description) ? "—" : local_cat.Description)
+                    </td>
+                    <td class="fw-medium">@local_cat.GameCount</td>
+                    <td>
+                        <div class="d-flex gap-2">
+                            <a href="@Url.Action("EditCategory", "Admin", new { id = local_cat.Id })"
+                               class="btn btn-admin btn-admin-warning" style="font-size: 0.78rem; padding: 5px 10px;">
+                                <i class="bi bi-pencil"></i> Edit
+                            </a>
+                            <form method="post" action="@Url.Action("DeleteCategory", "Admin", new { id = local_cat.Id })"
+                                  onsubmit="return confirm('Are you sure you want to delete category &quot;@local_cat.Name&quot;?')">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-admin btn-admin-danger" style="font-size: 0.78rem; padding: 5px 10px;"
+                                        @(local_cat.GameCount > 0 ? "disabled title=Category still has games, cannot delete" : "")>
+                                    <i class="bi bi-trash"></i> Delete
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+            }
+            @if (!Model.Categories.Any())
+            {
+                <tr>
+                    <td colspan="5" class="text-center text-muted py-5">
+                        <i class="bi bi-inbox" style="font-size: 2rem; display: block; margin-bottom: 8px;"></i>
+                        No categories yet
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

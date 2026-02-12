@@ -1,0 +1,123 @@
+@model Gauniv.WebServer.Models.AdminEditGameViewModel
+@{
+    ViewData["Title"] = "Edit Game";
+}
+
+<div class="admin-breadcrumb">
+    <a href="@Url.Action("Index", "Admin")">Dashboard</a>
+    <i class="bi bi-chevron-right" style="font-size: 0.7rem;"></i>
+    <a href="@Url.Action("Games", "Admin")">Games</a>
+    <i class="bi bi-chevron-right" style="font-size: 0.7rem;"></i>
+    <span>Edit: @Model.Name</span>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="admin-table p-4">
+            @if (!string.IsNullOrEmpty(Model.Error))
+            {
+                <div class="admin-alert alert alert-danger">
+                    <i class="bi bi-exclamation-triangle me-2"></i>@Model.Error
+                </div>
+            }
+
+            <form method="post" asp-action="EditGame" asp-route-id="@Model.Id" enctype="multipart/form-data" class="admin-form">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="Id" value="@Model.Id" />
+
+                <div class="mb-3">
+                    <label class="form-label">Game Name <span class="text-danger">*</span></label>
+                    <input type="text" name="Name" class="form-control" placeholder="Enter game name"
+                           value="@Model.Name" required maxlength="200">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Description</label>
+                    <textarea name="Description" class="form-control" rows="4"
+                              placeholder="Enter game description..." maxlength="2000">@Model.Description</textarea>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Price (€) <span class="text-danger">*</span></label>
+                        <input type="number" name="Price" class="form-control" step="0.01" min="0" max="9999.99"
+                               value="@Model.Price" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Replace Game File</label>
+                        <input type="file" name="GameFile" class="form-control">
+                        @if (!string.IsNullOrEmpty(Model.CurrentFileName))
+                        {
+                            <small class="text-muted">
+                                Current file: @Model.CurrentFileName (@FormatSize(Model.CurrentSize))
+                            </small>
+                        }
+                        else
+                        {
+                            <small class="text-muted">No file uploaded</small>
+                        }
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label">Categories</label>
+                    <div class="row">
+                        @foreach (var local_cat in Model.AvailableCategories)
+                        {
+                            <div class="col-md-4 mb-2">
+                                <div class="form-check">
+                                    <input type="checkbox" name="SelectedCategoryIds" value="@local_cat.Id"
+                                           class="form-check-input" id="cat_@local_cat.Id"
+                                           @(Model.SelectedCategoryIds.Contains(local_cat.Id) ? "checked" : "")>
+                                    <label class="form-check-label" for="cat_@local_cat.Id">
+                                        @local_cat.Name
+                                    </label>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <div class="d-flex gap-3">
+                    <button type="submit" class="btn btn-admin btn-admin-primary">
+                        <i class="bi bi-check-lg me-1"></i>Save Changes
+                    </button>
+                    <a href="@Url.Action("Games", "Admin")" class="btn btn-admin btn-admin-outline">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="admin-table p-4">
+            <h6 class="fw-bold mb-3"><i class="bi bi-info-circle me-2"></i>Game Info</h6>
+            <div style="font-size: 0.85rem; color: #64748b;">
+                <div class="mb-2"><strong>ID:</strong> #@Model.Id</div>
+                @if (!string.IsNullOrEmpty(Model.CurrentFileName))
+                {
+                    <div class="mb-2"><strong>Filename:</strong> @Model.CurrentFileName</div>
+                    <div class="mb-2"><strong>File Size:</strong> @FormatSize(Model.CurrentSize)</div>
+                }
+            </div>
+            <hr>
+            <h6 class="fw-bold mb-3 text-danger"><i class="bi bi-exclamation-triangle me-2"></i>Danger Zone</h6>
+            <form method="post" action="@Url.Action("DeleteGame", "Admin", new { id = Model.Id })"
+                  onsubmit="return confirm('Are you sure you want to delete game &quot;@Model.Name&quot;? This cannot be undone!')">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-admin btn-admin-danger w-100">
+                    <i class="bi bi-trash me-1"></i>Delete Game
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@functions {
+    static string FormatSize(long bytes)
+    {
+        if (bytes >= 1073741824) return $"{bytes / 1073741824.0:F2} GB";
+        if (bytes >= 1048576) return $"{bytes / 1048576.0:F2} MB";
+        if (bytes >= 1024) return $"{bytes / 1024.0:F2} KB";
+        return $"{bytes} B";
+    }
+}

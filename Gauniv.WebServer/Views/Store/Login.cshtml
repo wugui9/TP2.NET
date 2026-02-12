@@ -1,6 +1,6 @@
 @model Gauniv.WebServer.Models.StoreLoginViewModel
 @{
-    ViewData["Title"] = "用户登录";
+    ViewData["Title"] = "Login";
 }
 
 <div class="row justify-content-center">
@@ -9,8 +9,8 @@
             <div class="card-body p-5">
                 <div class="text-center mb-4">
                     <i class="bi bi-controller" style="font-size: 3rem; color: #5865F2;"></i>
-                    <h2 class="mt-3">登录 Gauniv</h2>
-                    <p class="text-muted">访问您的游戏库</p>
+                    <h2 class="mt-3">Login to Gauniv</h2>
+                    <p class="text-muted">Access your game library</p>
                 </div>
 
                 @if (!string.IsNullOrEmpty(Model.Error))
@@ -23,7 +23,7 @@
                 <form asp-controller="Store" asp-action="Login" method="post">
                     <div class="mb-3">
                         <label for="email" class="form-label">
-                            <i class="bi bi-envelope"></i> 邮箱地址
+                            <i class="bi bi-envelope"></i> Email
                         </label>
                         <input type="email" class="form-control form-control-lg" id="email"
                                name="Email" required
@@ -33,7 +33,7 @@
 
                     <div class="mb-3">
                         <label for="password" class="form-label">
-                            <i class="bi bi-lock"></i> 密码
+                            <i class="bi bi-lock"></i> Password
                         </label>
                         <input type="password" class="form-control form-control-lg"
                                id="password" name="Password" required
@@ -43,26 +43,17 @@
                     <div class="mb-3 form-check">
                         <input type="checkbox" class="form-check-input" id="remember" name="RememberMe" value="true">
                         <label class="form-check-label" for="remember">
-                            记住我
+                            Remember me
                         </label>
                     </div>
 
                     <div class="d-grid gap-2">
                         <button type="submit" class="btn btn-primary btn-lg">
-                            <i class="bi bi-box-arrow-in-right"></i> 登录
+                            <i class="bi bi-box-arrow-in-right"></i> Login
                         </button>
                     </div>
                 </form>
 
-                <hr class="my-4">
-
-                <div class="text-center">
-                    <p class="mb-0">还没有账号？
-                        <a asp-controller="Store" asp-action="Register" class="text-decoration-none">
-                            <i class="bi bi-person-plus"></i> 立即注册
-                        </a>
-                    </p>
-                </div>
             </div>
         </div>
     </div>

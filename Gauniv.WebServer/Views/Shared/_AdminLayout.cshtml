@@ -1,0 +1,517 @@
+@using Microsoft.AspNetCore.Identity
+@using Gauniv.WebServer.Data
+@inject SignInManager<User> SignInManager
+@inject UserManager<User> UserManager
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"] - Gauniv Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --sidebar-width: 260px;
+            --sidebar-bg: #1e293b;
+            --sidebar-hover: #334155;
+            --sidebar-active: #3b82f6;
+            --header-height: 60px;
+            --accent-color: #3b82f6;
+            --accent-hover: #2563eb;
+            --danger-color: #ef4444;
+            --success-color: #22c55e;
+            --warning-color: #f59e0b;
+            --info-color: #06b6d4;
+        }
+
+        * {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        body {
+            background: #f1f5f9;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        /* Sidebar */
+        .admin-sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: var(--sidebar-width);
+            height: 100vh;
+            background: var(--sidebar-bg);
+            color: white;
+            z-index: 1000;
+            overflow-y: auto;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-brand {
+            padding: 20px 24px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .sidebar-brand h5 {
+            margin: 0;
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: white;
+        }
+
+        .sidebar-brand .brand-icon {
+            width: 36px;
+            height: 36px;
+            background: var(--accent-color);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .sidebar-nav {
+            padding: 16px 12px;
+        }
+
+        .sidebar-section {
+            margin-bottom: 8px;
+        }
+
+        .sidebar-section-title {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: rgba(255,255,255,0.4);
+            padding: 12px 12px 6px;
+            font-weight: 600;
+        }
+
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            color: rgba(255,255,255,0.7);
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.15s ease;
+            margin-bottom: 2px;
+        }
+
+        .sidebar-link:hover {
+            background: var(--sidebar-hover);
+            color: white;
+        }
+
+        .sidebar-link.active {
+            background: var(--accent-color);
+            color: white;
+        }
+
+        .sidebar-link i {
+            font-size: 1.1rem;
+            width: 22px;
+            text-align: center;
+        }
+
+        .sidebar-link .badge {
+            margin-left: auto;
+            font-size: 0.7rem;
+        }
+
+        /* Main Content Area */
+        .admin-main {
+            margin-left: var(--sidebar-width);
+            min-height: 100vh;
+        }
+
+        /* Top Bar */
+        .admin-header {
+            background: white;
+            height: var(--header-height);
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .admin-header .page-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #1e293b;
+            margin: 0;
+        }
+
+        .admin-content {
+            padding: 24px;
+        }
+
+        /* Stat Cards */
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            border: 1px solid #e2e8f0;
+            transition: box-shadow 0.2s;
+        }
+
+        .stat-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        .stat-card .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+        }
+
+        .stat-card .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .stat-card .stat-label {
+            font-size: 0.85rem;
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        /* Table Styles */
+        .admin-table {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            overflow: hidden;
+        }
+
+        .admin-table .table {
+            margin-bottom: 0;
+        }
+
+        .admin-table .table thead th {
+            background: #f8fafc;
+            border-bottom: 2px solid #e2e8f0;
+            font-weight: 600;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #64748b;
+            padding: 14px 16px;
+        }
+
+        .admin-table .table tbody td {
+            padding: 14px 16px;
+            vertical-align: middle;
+            font-size: 0.9rem;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .admin-table .table tbody tr:hover {
+            background: #f8fafc;
+        }
+
+        /* Button Styles */
+        .btn-admin {
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 0.85rem;
+            padding: 8px 16px;
+            border: none;
+            transition: all 0.15s ease;
+        }
+
+        .btn-admin-primary {
+            background: var(--accent-color);
+            color: white;
+        }
+
+        .btn-admin-primary:hover {
+            background: var(--accent-hover);
+            color: white;
+        }
+
+        .btn-admin-danger {
+            background: #fef2f2;
+            color: var(--danger-color);
+        }
+
+        .btn-admin-danger:hover {
+            background: var(--danger-color);
+            color: white;
+        }
+
+        .btn-admin-success {
+            background: #f0fdf4;
+            color: var(--success-color);
+        }
+
+        .btn-admin-success:hover {
+            background: var(--success-color);
+            color: white;
+        }
+
+        .btn-admin-warning {
+            background: #fffbeb;
+            color: #b45309;
+        }
+
+        .btn-admin-warning:hover {
+            background: var(--warning-color);
+            color: white;
+        }
+
+        .btn-admin-outline {
+            background: white;
+            color: #64748b;
+            border: 1px solid #e2e8f0;
+        }
+
+        .btn-admin-outline:hover {
+            background: #f8fafc;
+            color: #1e293b;
+        }
+
+        /* Form Styles */
+        .admin-form .form-label {
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: #374151;
+            margin-bottom: 6px;
+        }
+
+        .admin-form .form-control,
+        .admin-form .form-select {
+            border-radius: 8px;
+            border: 1px solid #d1d5db;
+            padding: 10px 14px;
+            font-size: 0.9rem;
+        }
+
+        .admin-form .form-control:focus,
+        .admin-form .form-select:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        }
+
+        /* Breadcrumb */
+        .admin-breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            color: #64748b;
+            margin-bottom: 20px;
+        }
+
+        .admin-breadcrumb a {
+            color: var(--accent-color);
+            text-decoration: none;
+        }
+
+        .admin-breadcrumb a:hover {
+            text-decoration: underline;
+        }
+
+        /* Alert Styles */
+        .admin-alert {
+            border-radius: 10px;
+            border: none;
+            padding: 14px 18px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        /* Search Box */
+        .search-box {
+            position: relative;
+        }
+
+        .search-box .form-control {
+            padding-left: 40px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            background: #f8fafc;
+        }
+
+        .search-box .search-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+        }
+
+        /* Badge */
+        .admin-badge {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        /* Back to Store Button */
+        .back-to-store {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px;
+            color: rgba(255,255,255,0.5);
+            text-decoration: none;
+            font-size: 0.85rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            transition: color 0.15s;
+        }
+
+        .back-to-store:hover {
+            color: rgba(255,255,255,0.8);
+        }
+
+        /* Responsive */
+        @@media (max-width: 768px) {
+            .admin-sidebar {
+                transform: translateX(-100%);
+            }
+
+            .admin-sidebar.show {
+                transform: translateX(0);
+            }
+
+            .admin-main {
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    @{
+        var local_currentUser = await UserManager.GetUserAsync(User);
+        var local_currentPath = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+    }
+
+    <!-- Sidebar -->
+    <aside class="admin-sidebar" id="sidebar">
+        <div class="sidebar-brand">
+            <div class="brand-icon">
+                <i class="bi bi-controller"></i>
+            </div>
+            <h5>Gauniv Admin</h5>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">Overview</div>
+                <a href="@Url.Action("Index", "Admin")"
+                   class="sidebar-link @(local_currentPath == "Index" ? "active" : "")">
+                    <i class="bi bi-grid-1x2"></i>
+                    <span>Dashboard</span>
+                </a>
+            </div>
+
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">Content</div>
+                <a href="@Url.Action("Games", "Admin")"
+                   class="sidebar-link @(local_currentPath is "Games" or "CreateGame" or "EditGame" ? "active" : "")">
+                    <i class="bi bi-joystick"></i>
+                    <span>Games</span>
+                </a>
+                <a href="@Url.Action("Categories", "Admin")"
+                   class="sidebar-link @(local_currentPath is "Categories" or "CreateCategory" or "EditCategory" ? "active" : "")">
+                    <i class="bi bi-tags"></i>
+                    <span>Categories</span>
+                </a>
+            </div>
+
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">System</div>
+                <a href="@Url.Action("Users", "Admin")"
+                   class="sidebar-link @(local_currentPath is "Users" or "UserDetail" ? "active" : "")">
+                    <i class="bi bi-people"></i>
+                    <span>Users</span>
+                </a>
+            </div>
+        </nav>
+
+        <div style="position: absolute; bottom: 0; width: 100%;">
+            <a href="@Url.Action("Index", "Store")" class="back-to-store">
+                <i class="bi bi-arrow-left"></i>
+                <span>Back to Store</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="admin-main">
+        <!-- Top Bar -->
+        <header class="admin-header">
+            <div class="d-flex align-items-center gap-3">
+                <button class="btn d-md-none" id="toggleSidebar" style="padding: 4px 8px;">
+                    <i class="bi bi-list fs-5"></i>
+                </button>
+                <h1 class="page-title">@ViewData["Title"]</h1>
+            </div>
+            <div class="d-flex align-items-center gap-3">
+                <span class="text-muted" style="font-size: 0.85rem;">
+                    <i class="bi bi-person-circle me-1"></i>
+                    @(local_currentUser?.FirstName ?? local_currentUser?.Email ?? "Admin")
+                </span>
+                <a href="@Url.Action("Logout", "Store")" class="btn btn-admin btn-admin-outline" style="font-size: 0.8rem;">
+                    <i class="bi bi-box-arrow-right me-1"></i>Logout
+                </a>
+            </div>
+        </header>
+
+        <!-- Content Area -->
+        <div class="admin-content">
+            @if (TempData["Message"] != null)
+            {
+                var local_msgType = TempData["MessageType"]?.ToString() ?? "info";
+                <div class="admin-alert alert alert-@local_msgType alert-dismissible fade show" role="alert">
+                    @if (local_msgType == "success")
+                    {
+                        <i class="bi bi-check-circle me-2"></i>
+                    }
+                    else if (local_msgType == "danger")
+                    {
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                    }
+                    else
+                    {
+                        <i class="bi bi-info-circle me-2"></i>
+                    }
+                    @TempData["Message"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            @RenderBody()
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Responsive sidebar toggle
+        document.getElementById('toggleSidebar')?.addEventListener('click', function () {
+            document.getElementById('sidebar').classList.toggle('show');
+        });
+    </script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

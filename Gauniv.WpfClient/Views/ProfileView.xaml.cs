@@ -2,9 +2,9 @@ using System.Windows.Controls;
 
 namespace Gauniv.WpfClient.Views;
 
-public partial class GameDetailsView : UserControl
+public partial class ProfileView : UserControl
 {
-    public GameDetailsView()
+    public ProfileView()
     {
         InitializeComponent();
     }

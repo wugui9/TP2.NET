@@ -9,7 +9,7 @@ namespace Gauniv.WebServer.Dtos
         public int Id { get; set; }
         public string Name { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
-        public int GameCount { get; set; } // 此类别下的游戏数量
+        public int GameCount { get; set; }
     }
 
     public class CreateCategoryDto

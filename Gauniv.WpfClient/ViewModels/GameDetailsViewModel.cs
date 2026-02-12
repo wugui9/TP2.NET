@@ -7,7 +7,7 @@ using Gauniv.WpfClient.Services;
 namespace Gauniv.WpfClient.ViewModels;
 
 /// <summary>
-/// 游戏详情视图模型
+/// Game Details ViewModel
 /// </summary>
 public partial class GameDetailsViewModel : ViewModelBase, INavigationAware
 {
@@ -22,9 +22,11 @@ public partial class GameDetailsViewModel : ViewModelBase, INavigationAware
     private bool _isLoading;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowDownloadButton))]
     private bool _isPurchased;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowDownloadButton))]
     private bool _isDownloaded;
 
     [ObservableProperty]
@@ -32,6 +34,12 @@ public partial class GameDetailsViewModel : ViewModelBase, INavigationAware
 
     [ObservableProperty]
     private string _statusMessage = string.Empty;
+
+    /// <summary>
+    /// Show download button when purchased but not yet downloaded
+    /// </summary>
+    public bool ShowDownloadButton => IsPurchased && !IsDownloaded;
+
 
     public GameDetailsViewModel(
         IGameService gameService, 
@@ -59,14 +67,31 @@ public partial class GameDetailsViewModel : ViewModelBase, INavigationAware
         {
             Game = await _gameService.GetGameByIdAsync(gameId);
             
-            // TODO: 检查是否已购买和已下载
-            // 这里需要额外的 API 或本地状态管理
-            IsPurchased = false;
-            IsDownloaded = false;
+            if (Game != null)
+            {
+                // Use IsOwned field from API response to check ownership
+                IsPurchased = Game.IsOwned;
+
+                // Check if locally downloaded
+                var downloadsFolder = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+                    "Gauniv", "Games");
+                var filePath = Path.Combine(downloadsFolder, $"{Game.Name}.txt");
+                if (File.Exists(filePath))
+                {
+                    IsDownloaded = true;
+                    DownloadPath = filePath;
+                }
+                else
+                {
+                    IsDownloaded = false;
+                    DownloadPath = string.Empty;
+                }
+            }
         }
         catch
         {
-            // 处理错误
+            // Handle error
         }
         finally
         {
@@ -87,16 +112,16 @@ public partial class GameDetailsViewModel : ViewModelBase, INavigationAware
             if (success)
             {
                 IsPurchased = true;
-                StatusMessage = "游戏购买成功！";
+                StatusMessage = "Purchase successful!";
             }
             else
             {
-                StatusMessage = "购买失败，请重试。";
+                StatusMessage = "Purchase failed. Please try again.";
             }
         }
         catch
         {
-            // 处理错误
+            // Handle error
         }
         finally
         {
@@ -113,7 +138,7 @@ public partial class GameDetailsViewModel : ViewModelBase, INavigationAware
         
         try
         {
-            // 设置下载路径
+            // Set download path
             var downloadsFolder = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
                 "Gauniv", "Games");
@@ -127,16 +152,16 @@ public partial class GameDetailsViewModel : ViewModelBase, INavigationAware
             {
                 IsDownloaded = true;
                 DownloadPath = filePath;
-                StatusMessage = "游戏下载成功！";
+                StatusMessage = "Download successful!";
             }
             else
             {
-                StatusMessage = "下载失败，请重试。";
+                StatusMessage = "Download failed. Please try again.";
             }
         }
         catch
         {
-            // 处理错误
+            // Handle error
         }
         finally
         {
@@ -151,7 +176,6 @@ public partial class GameDetailsViewModel : ViewModelBase, INavigationAware
 
         try
         {
-            // 使用默认程序打开文件
             System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
             {
                 FileName = DownloadPath,
@@ -160,13 +184,42 @@ public partial class GameDetailsViewModel : ViewModelBase, INavigationAware
         }
         catch
         {
-            // 处理错误
+            // Handle error
+        }
+    }
+
+    [RelayCommand]
+    private void DeleteGame()
+    {
+        if (!IsDownloaded || string.IsNullOrEmpty(DownloadPath)) return;
+
+        try
+        {
+            if (File.Exists(DownloadPath))
+            {
+                File.Delete(DownloadPath);
+            }
+
+            IsDownloaded = false;
+            DownloadPath = string.Empty;
+            StatusMessage = "Game deleted successfully.";
+        }
+        catch
+        {
+            StatusMessage = "Failed to delete the game.";
         }
     }
 
     [RelayCommand]
     private void GoBack()
     {
-        _navigationService.NavigateTo<GameListViewModel>();
+        if (_navigationService.CanGoBack)
+        {
+            _navigationService.GoBack();
+        }
+        else
+        {
+            _navigationService.NavigateTo<GameListViewModel>();
+        }
     }
 }

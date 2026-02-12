@@ -1,44 +1,67 @@
 using System.IO;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Text.Json;
 using Gauniv.WpfClient.Models;
 
 namespace Gauniv.WpfClient.Services;
 
-/// <summary>
-/// 游戏服务实现
-/// </summary>
 public class GameService : IGameService
 {
     private readonly HttpClient _httpClient;
+
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNameCaseInsensitive = true
+    };
 
     public GameService(HttpClient httpClient)
     {
         _httpClient = httpClient;
     }
 
-    public async Task<List<Game>> GetGamesAsync(int page = 1, int pageSize = 10, int? categoryId = null)
+    public async Task<GameListResponse> GetGamesAsync(int offset = 0, int limit = 10, int[]? categoryIds = null, bool? owned = null, decimal? minPrice = null, decimal? maxPrice = null)
     {
+        var empty = new GameListResponse();
         try
         {
-            var url = $"/api/games?page={page}&pageSize={pageSize}";
-            if (categoryId.HasValue)
+            var url = $"/api/games?offset={offset}&limit={limit}";
+
+            if (categoryIds is { Length: > 0 })
             {
-                url += $"&categoryId={categoryId.Value}";
+                foreach (var id in categoryIds)
+                {
+                    url += $"&category={id}";
+                }
+            }
+
+            if (owned.HasValue)
+            {
+                url += $"&owned={owned.Value.ToString().ToLower()}";
+            }
+
+            if (minPrice.HasValue)
+            {
+                url += $"&minPrice={minPrice.Value}";
+            }
+
+            if (maxPrice.HasValue)
+            {
+                url += $"&maxPrice={maxPrice.Value}";
             }
 
             var response = await _httpClient.GetAsync(url);
             if (response.IsSuccessStatusCode)
             {
-                var games = await response.Content.ReadFromJsonAsync<List<Game>>();
-                return games ?? new List<Game>();
+                var result = await response.Content.ReadFromJsonAsync<GameListResponse>(JsonOptions);
+                return result ?? empty;
             }
-            
-            return new List<Game>();
+
+            return empty;
         }
         catch
         {
-            return new List<Game>();
+            return empty;
         }
     }
 
@@ -49,9 +72,9 @@ public class GameService : IGameService
             var response = await _httpClient.GetAsync($"/api/games/{id}");
             if (response.IsSuccessStatusCode)
             {
-                return await response.Content.ReadFromJsonAsync<Game>();
+                return await response.Content.ReadFromJsonAsync<Game>(JsonOptions);
             }
-            
+
             return null;
         }
         catch
@@ -67,10 +90,10 @@ public class GameService : IGameService
             var response = await _httpClient.GetAsync("/api/categories");
             if (response.IsSuccessStatusCode)
             {
-                var categories = await response.Content.ReadFromJsonAsync<List<Category>>();
+                var categories = await response.Content.ReadFromJsonAsync<List<Category>>(JsonOptions);
                 return categories ?? new List<Category>();
             }
-            
+
             return new List<Category>();
         }
         catch
@@ -103,7 +126,7 @@ public class GameService : IGameService
                 await File.WriteAllBytesAsync(downloadPath, content);
                 return true;
             }
-            
+
             return false;
         }
         catch

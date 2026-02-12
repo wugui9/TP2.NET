@@ -49,23 +49,17 @@ namespace Gauniv.WebServer.Data
         [Required]
         public decimal Price { get; set; }
 
-        // 游戏文件的二进制数据 (简化版用于测试)
         public byte[]? Payload { get; set; }
 
-        // 游戏文件名
         [MaxLength(100)]
         public string? FileName { get; set; }
 
-        // 游戏大小 (字节)
         public long Size { get; set; }
 
-        // 创建时间
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-        // 游戏类别 (多对多关系)
         public ICollection<Category> Categories { get; set; } = new List<Category>();
 
-        // 购买此游戏的用户 (多对多关系)
         public ICollection<User> Owners { get; set; } = new List<User>();
     }
 }

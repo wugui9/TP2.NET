@@ -3,14 +3,14 @@ using Gauniv.WebServer.Dtos;
 
 namespace Gauniv.WebServer.Models
 {
-    // 首页视图模型
+    // Home page view model
     public class StoreIndexViewModel
     {
         public List<GameListDto> LatestGames { get; set; } = new();
         public List<CategoryDto> Categories { get; set; } = new();
     }
 
-    // 游戏列表视图模型
+    // Game list view model
     public class StoreGamesViewModel
     {
         public List<GameListDto> Games { get; set; } = new();
@@ -20,9 +20,15 @@ namespace Gauniv.WebServer.Models
         public int TotalPages { get; set; }
         public int Limit { get; set; } = 12;
         public bool IsLoggedIn { get; set; }
+
+        // Filter conditions (for display)
+        public int? CategoryId { get; set; }
+        public decimal? MinPrice { get; set; }
+        public decimal? MaxPrice { get; set; }
+        public bool? Owned { get; set; }
     }
 
-    // 游戏详情视图模型
+    // Game detail view model
     public class StoreGameDetailViewModel
     {
         public GameDto Game { get; set; } = new();
@@ -31,20 +37,20 @@ namespace Gauniv.WebServer.Models
         public string? MessageType { get; set; }
     }
 
-    // 分类列表视图模型
+    // Category list view model
     public class StoreCategoriesViewModel
     {
         public List<CategoryDto> Categories { get; set; } = new();
     }
 
-    // 分类详情视图模型
+    // Category detail view model
     public class StoreCategoryDetailViewModel
     {
         public CategoryDto Category { get; set; } = new();
         public List<GameListDto> Games { get; set; } = new();
     }
 
-    // 游戏库视图模型
+    // Library view model
     public class StoreLibraryViewModel
     {
         public List<GameListDto> OwnedGames { get; set; } = new();
@@ -53,7 +59,7 @@ namespace Gauniv.WebServer.Models
         public decimal TotalValue { get; set; }
     }
 
-    // 个人信息视图模型
+    // Profile view model
     public class StoreProfileViewModel
     {
         public string Email { get; set; } = string.Empty;
@@ -62,7 +68,7 @@ namespace Gauniv.WebServer.Models
         public DateTime RegisteredAt { get; set; }
     }
 
-    // 登录视图模型
+    // Login view model
     public class StoreLoginViewModel
     {
         public string Email { get; set; } = string.Empty;
@@ -71,7 +77,7 @@ namespace Gauniv.WebServer.Models
         public string? Error { get; set; }
     }
 
-    // 注册视图模型
+    // Register view model
     public class StoreRegisterViewModel
     {
         public string Email { get; set; } = string.Empty;
@@ -82,7 +88,7 @@ namespace Gauniv.WebServer.Models
         public string? Error { get; set; }
     }
 
-    // 下载视图模型
+    // Download view model
     public class StoreDownloadViewModel
     {
         public GameDto Game { get; set; } = new();

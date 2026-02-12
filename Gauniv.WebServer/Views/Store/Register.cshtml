@@ -1,6 +1,6 @@
 @model Gauniv.WebServer.Models.StoreRegisterViewModel
 @{
-    ViewData["Title"] = "用户注册";
+    ViewData["Title"] = "Register";
 }
 
 <div class="row justify-content-center">
@@ -9,8 +9,8 @@
             <div class="card-body p-5">
                 <div class="text-center mb-4">
                     <i class="bi bi-person-plus-fill" style="font-size: 3rem; color: #5865F2;"></i>
-                    <h2 class="mt-3">注册 Gauniv</h2>
-                    <p class="text-muted">创建您的游戏账户</p>
+                    <h2 class="mt-3">Register for Gauniv</h2>
+                    <p class="text-muted">Create your game account</p>
                 </div>
 
                 @if (!string.IsNullOrEmpty(Model.Error))
@@ -24,27 +24,27 @@
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <label for="first_name" class="form-label">
-                                <i class="bi bi-person"></i> 名字
+                                <i class="bi bi-person"></i> First Name
                             </label>
                             <input type="text" class="form-control" id="first_name"
                                    name="FirstName" required
                                    value="@Model.FirstName"
-                                   placeholder="张">
+                                   placeholder="Aa">
                         </div>
                         <div class="col-md-6">
                             <label for="last_name" class="form-label">
-                                <i class="bi bi-person"></i> 姓氏
+                                <i class="bi bi-person"></i> Last Name
                             </label>
                             <input type="text" class="form-control" id="last_name"
                                    name="LastName" required
                                    value="@Model.LastName"
-                                   placeholder="三">
+                                   placeholder="Bb">
                         </div>
                     </div>
 
                     <div class="mb-3">
                         <label for="email" class="form-label">
-                            <i class="bi bi-envelope"></i> 邮箱地址
+                            <i class="bi bi-envelope"></i> Email
                         </label>
                         <input type="email" class="form-control" id="email"
                                name="Email" required
@@ -54,39 +54,27 @@
 
                     <div class="mb-3">
                         <label for="password" class="form-label">
-                            <i class="bi bi-lock"></i> 密码
+                            <i class="bi bi-lock"></i> Password
                         </label>
                         <input type="password" class="form-control"
-                               id="password" name="Password" required
-                               placeholder="至少6个字符">
-                        <small class="form-text text-muted">密码长度至少为6个字符</small>
+                               id="password" name="Password">
                     </div>
 
                     <div class="mb-3">
                         <label for="confirm_password" class="form-label">
-                            <i class="bi bi-lock-fill"></i> 确认密码
+                            <i class="bi bi-lock-fill"></i> Confirm Password
                         </label>
                         <input type="password" class="form-control"
                                id="confirm_password" name="ConfirmPassword" required
-                               placeholder="再次输入密码">
+                               placeholder="Re-enter password">
                     </div>
 
                     <div class="d-grid gap-2">
                         <button type="submit" class="btn btn-primary btn-lg">
-                            <i class="bi bi-person-plus"></i> 注册
+                            <i class="bi bi-person-plus"></i> Register
                         </button>
                     </div>
                 </form>
-
-                <hr class="my-4">
-
-                <div class="text-center">
-                    <p class="mb-0">已有账号？
-                        <a asp-controller="Store" asp-action="Login" class="text-decoration-none">
-                            <i class="bi bi-box-arrow-in-right"></i> 立即登录
-                        </a>
-                    </p>
-                </div>
             </div>
         </div>
     </div>

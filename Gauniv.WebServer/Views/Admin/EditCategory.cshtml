@@ -1,0 +1,80 @@
+@model Gauniv.WebServer.Models.AdminEditCategoryViewModel
+@{
+    ViewData["Title"] = "Edit Category";
+}
+
+<div class="admin-breadcrumb">
+    <a href="@Url.Action("Index", "Admin")">Dashboard</a>
+    <i class="bi bi-chevron-right" style="font-size: 0.7rem;"></i>
+    <a href="@Url.Action("Categories", "Admin")">Categories</a>
+    <i class="bi bi-chevron-right" style="font-size: 0.7rem;"></i>
+    <span>Edit: @Model.Name</span>
+</div>
+
+<div class="row">
+    <div class="col-lg-6">
+        <div class="admin-table p-4">
+            @if (!string.IsNullOrEmpty(Model.Error))
+            {
+                <div class="admin-alert alert alert-danger">
+                    <i class="bi bi-exclamation-triangle me-2"></i>@Model.Error
+                </div>
+            }
+
+            <form method="post" asp-action="EditCategory" asp-route-id="@Model.Id" class="admin-form">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="Id" value="@Model.Id" />
+
+                <div class="mb-3">
+                    <label class="form-label">Category Name <span class="text-danger">*</span></label>
+                    <input type="text" name="Name" class="form-control" placeholder="Category name"
+                           value="@Model.Name" required maxlength="100">
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label">Description</label>
+                    <textarea name="Description" class="form-control" rows="3"
+                              placeholder="Enter description..." maxlength="500">@Model.Description</textarea>
+                </div>
+
+                <div class="d-flex gap-3">
+                    <button type="submit" class="btn btn-admin btn-admin-primary">
+                        <i class="bi bi-check-lg me-1"></i>Save Changes
+                    </button>
+                    <a href="@Url.Action("Categories", "Admin")" class="btn btn-admin btn-admin-outline">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="admin-table p-4">
+            <h6 class="fw-bold mb-3"><i class="bi bi-info-circle me-2"></i>Category Info</h6>
+            <div style="font-size: 0.85rem; color: #64748b;">
+                <div class="mb-2"><strong>ID:</strong> #@Model.Id</div>
+                <div class="mb-2"><strong>Games:</strong> @Model.GameCount</div>
+            </div>
+
+            @if (Model.GameCount == 0)
+            {
+                <hr>
+                <h6 class="fw-bold mb-3 text-danger"><i class="bi bi-exclamation-triangle me-2"></i>Danger Zone</h6>
+                <form method="post" action="@Url.Action("DeleteCategory", "Admin", new { id = Model.Id })"
+                      onsubmit="return confirm('Are you sure you want to delete category &quot;@Model.Name&quot;?')">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-admin btn-admin-danger w-100">
+                        <i class="bi bi-trash me-1"></i>Delete Category
+                    </button>
+                </form>
+            }
+            else
+            {
+                <hr>
+                <div class="admin-alert alert alert-warning" style="font-size: 0.85rem;">
+                    <i class="bi bi-info-circle me-1"></i>
+                    This category has @Model.GameCount games. Remove all games before deleting.
+                </div>
+            }
+        </div>
+    </div>
+</div>

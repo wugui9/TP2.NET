@@ -1,0 +1,115 @@
+@model Gauniv.WebServer.Models.AdminUsersViewModel
+@{
+    ViewData["Title"] = "User Management";
+}
+
+<div class="admin-breadcrumb">
+    <a href="@Url.Action("Index", "Admin")">Dashboard</a>
+    <i class="bi bi-chevron-right" style="font-size: 0.7rem;"></i>
+    <span>User Management</span>
+</div>
+
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <div class="d-flex align-items-center gap-3">
+        <form method="get" asp-action="Users" class="search-box" style="width: 300px;">
+            <i class="bi bi-search search-icon"></i>
+            <input type="text" name="search" class="form-control" placeholder="Search email or name..."
+                   value="@Model.SearchQuery">
+        </form>
+        <span class="text-muted" style="font-size: 0.85rem;">@Model.TotalCount users total</span>
+    </div>
+</div>
+
+<div class="admin-table">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>User</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Owned Games</th>
+                <th>Registered</th>
+                <th style="width: 160px;">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var local_user in Model.Users)
+            {
+                <tr>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <div style="width: 36px; height: 36px; border-radius: 50%; background: @(local_user.IsAdmin ? "#3b82f6" : "#94a3b8"); color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.85rem;">
+                                @(local_user.FirstName.Length > 0 ? local_user.FirstName[0].ToString().ToUpper() : "?")
+                            </div>
+                            <div>
+                                <div class="fw-medium">@local_user.FirstName @local_user.LastName</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="text-muted" style="font-size: 0.85rem;">@local_user.Email</td>
+                    <td>
+                        @if (local_user.IsAdmin)
+                        {
+                            <span class="fw-medium" style="color: #b45309;">Admin</span>
+                        }
+                        else
+                        {
+                            <span class="text-muted">User</span>
+                        }
+                    </td>
+                    <td class="fw-medium">@local_user.OwnedGameCount</td>
+                    <td class="text-muted" style="font-size: 0.85rem;">@local_user.RegisteredAt.ToString("yyyy-MM-dd HH:mm")</td>
+                    <td>
+                        <div class="d-flex gap-2">
+                            <a href="@Url.Action("UserDetail", "Admin", new { id = local_user.Id })"
+                               class="btn btn-admin btn-admin-outline" style="font-size: 0.78rem; padding: 5px 10px;">
+                                <i class="bi bi-eye"></i> Details
+                            </a>
+                            <form method="post" asp-action="ToggleAdmin" asp-route-id="@local_user.Id"
+                                  onsubmit="return confirm('@(local_user.IsAdmin ? "Remove admin privileges?" : "Grant admin privileges?")')">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-admin @(local_user.IsAdmin ? "btn-admin-danger" : "btn-admin-success")"
+                                        style="font-size: 0.78rem; padding: 5px 10px;">
+                                    @if (local_user.IsAdmin)
+                                    {
+                                        <i class="bi bi-shield-x"></i>
+                                    }
+                                    else
+                                    {
+                                        <i class="bi bi-shield-plus"></i>
+                                    }
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+            }
+            @if (!Model.Users.Any())
+            {
+                <tr>
+                    <td colspan="6" class="text-center text-muted py-5">
+                        <i class="bi bi-inbox" style="font-size: 2rem; display: block; margin-bottom: 8px;"></i>
+                        No users yet
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@if (Model.TotalPages > 1)
+{
+    <nav class="mt-4 d-flex justify-content-center">
+        <ul class="pagination">
+            @for (int local_i = 1; local_i <= Model.TotalPages; local_i++)
+            {
+                <li class="page-item @(local_i == Model.CurrentPage ? "active" : "")">
+                    <a class="page-link" href="@Url.Action("Users", "Admin", new { page = local_i, search = Model.SearchQuery })"
+                       style="border-radius: 8px; margin: 0 2px; @(local_i == Model.CurrentPage ? "background: #3b82f6; border-color: #3b82f6;" : "")">
+                        @local_i
+                    </a>
+                </li>
+            }
+        </ul>
+    </nav>
+}

@@ -1,7 +1,7 @@
 @model Gauniv.WebServer.Models.StoreGameDetailViewModel
 @using Gauniv.WebServer.Controllers
 @{
-    ViewData["Title"] = Model.Game.Name + " - 游戏详情";
+    ViewData["Title"] = Model.Game.Name + " - Game Details";
 }
 
 <div class="row">
@@ -13,7 +13,7 @@
                     @if (Model.Game.IsOwned)
                     {
                         <span class="badge bg-success" style="font-size: 1rem;">
-                            <i class="bi bi-check-circle"></i> 已拥有
+                            <i class="bi bi-check-circle"></i> Owned
                         </span>
                     }
                 </div>
@@ -27,32 +27,31 @@
 
                 <hr>
 
-                <h4><i class="bi bi-info-circle"></i> 游戏描述</h4>
+                <h4><i class="bi bi-info-circle"></i> Description</h4>
                 <p class="lead">
-                    @Html.Raw(Model.Game.Description?.Replace("\n", "<br>") ?? "暂无描述")
+                    @Html.Raw(Model.Game.Description?.Replace("\n", "<br>") ?? "No description")
                 </p>
             </div>
         </div>
 
-        <!-- 游戏信息 -->
         <div class="card">
             <div class="card-body">
-                <h4><i class="bi bi-list-ul"></i> 游戏信息</h4>
+                <h4><i class="bi bi-list-ul"></i> Game Info</h4>
                 <table class="table table-borderless">
                     <tr>
-                        <td><strong><i class="bi bi-hdd"></i> 文件大小:</strong></td>
+                        <td><strong><i class="bi bi-hdd"></i> File Size:</strong></td>
                         <td>@StoreController.FormatSize(Model.Game.Size)</td>
                     </tr>
                     <tr>
-                        <td><strong><i class="bi bi-file-earmark"></i> 文件名:</strong></td>
+                        <td><strong><i class="bi bi-file-earmark"></i> Filename:</strong></td>
                         <td>@(Model.Game.FileName ?? "N/A")</td>
                     </tr>
                     <tr>
-                        <td><strong><i class="bi bi-calendar"></i> 上架时间:</strong></td>
+                        <td><strong><i class="bi bi-calendar"></i> Release Date:</strong></td>
                         <td>@StoreController.FormatDate(Model.Game.CreatedAt)</td>
                     </tr>
                     <tr>
-                        <td><strong><i class="bi bi-tag"></i> 分类:</strong></td>
+                        <td><strong><i class="bi bi-tag"></i> Categories:</strong></td>
                         <td>@string.Join(", ", Model.Game.Categories.Select(c => c.Name))</td>
                     </tr>
                 </table>
@@ -60,7 +59,6 @@
         </div>
     </div>
 
-    <!-- 购买/下载区域 -->
     <div class="col-md-4">
         <div class="card sticky-top" style="top: 20px;">
             <div class="card-body">
@@ -73,20 +71,20 @@
                 @if (!Model.IsLoggedIn)
                 {
                     <div class="alert alert-info">
-                        <i class="bi bi-info-circle"></i> 请先登录以购买游戏
+                        <i class="bi bi-info-circle"></i> Please login to purchase games
                     </div>
                 }
                 else if (Model.Game.IsOwned)
                 {
                     <div class="alert alert-success">
-                        <i class="bi bi-check-circle"></i> 您已拥有此游戏
+                        <i class="bi bi-check-circle"></i> You own this game
                     </div>
                     <div class="d-grid gap-2">
                         <a asp-controller="Store" asp-action="StartDownload" asp-route-id="@Model.Game.Id" class="btn btn-success btn-lg">
-                            <i class="bi bi-download"></i> 下载游戏
+                            <i class="bi bi-download"></i> Download
                         </a>
                         <a asp-controller="Store" asp-action="Library" class="btn btn-outline-primary">
-                            <i class="bi bi-bookmark-star"></i> 查看游戏库
+                            <i class="bi bi-bookmark-star"></i> View Library
                         </a>
                     </div>
                 }
@@ -95,7 +93,7 @@
                     <form asp-controller="Store" asp-action="Purchase" asp-route-id="@Model.Game.Id" method="post">
                         <div class="d-grid gap-2">
                             <button type="submit" class="btn btn-primary btn-lg">
-                                <i class="bi bi-cart-plus"></i> 立即购买
+                                <i class="bi bi-cart-plus"></i> Buy Now
                             </button>
                         </div>
                     </form>
@@ -105,7 +103,7 @@
 
                 <div class="text-center">
                     <a asp-controller="Store" asp-action="Games" class="btn btn-outline-secondary">
-                        <i class="bi bi-arrow-left"></i> 返回商店
+                        <i class="bi bi-arrow-left"></i> Back to Store
                     </a>
                 </div>
             </div>

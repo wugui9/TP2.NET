@@ -14,9 +14,8 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         
-        <!-- 返回按钮 -->
         <Button Grid.Row="0" 
-               Content="← 返回" 
+               Content="← Back" 
                Command="{Binding GoBackCommand}"
                HorizontalAlignment="Left"
                Padding="15,8"
@@ -52,32 +51,87 @@
             </Button.Style>
         </Button>
         
-        <!-- 游戏详情 -->
         <ScrollViewer Grid.Row="1" 
                      VerticalScrollBarVisibility="Auto">
             <StackPanel>
-                <!-- 游戏标题 -->
                 <TextBlock Text="{Binding Game.Name}" 
                           FontSize="32" 
                           FontWeight="Bold"
                           Margin="0,0,0,10"
                           Foreground="#333333"/>
                 
-                <!-- 类别 -->
-                <TextBlock Text="{Binding Game.CategoryName}" 
+                <TextBlock Text="{Binding Game.CategoryDisplay}" 
                           FontSize="14" 
                           Margin="0,0,0,20"
                           Foreground="#999999"/>
                 
-                <!-- 价格 -->
-                <TextBlock Text="{Binding Game.Price, StringFormat=¥{0:F2}}" 
+                <TextBlock Text="{Binding Game.Price, StringFormat={}{0:F2} €}" 
                           FontSize="28" 
                           FontWeight="Bold"
-                          Margin="0,0,0,20"
+                          Margin="0,0,0,8"
                           Foreground="#007ACC"/>
                 
-                <!-- 描述 -->
-                <TextBlock Text="游戏描述" 
+                <!-- Status badges -->
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
+                    <!-- Owned badge -->
+                    <Border CornerRadius="4" Padding="10,4" Margin="0,0,8,0">
+                        <Border.Style>
+                            <Style TargetType="Border">
+                                <Setter Property="Background" Value="#F0F0F0"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsPurchased}" Value="True">
+                                        <Setter Property="Background" Value="#D4EDDA"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
+                        <TextBlock FontSize="12" FontWeight="SemiBold">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Text" Value="Not owned"/>
+                                    <Setter Property="Foreground" Value="#999"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsPurchased}" Value="True">
+                                            <Setter Property="Text" Value="Owned"/>
+                                            <Setter Property="Foreground" Value="#155724"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </Border>
+                    
+                    <!-- Installed badge (only show when owned) -->
+                    <Border CornerRadius="4" Padding="10,4"
+                           Visibility="{Binding IsPurchased, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <Border.Style>
+                            <Style TargetType="Border">
+                                <Setter Property="Background" Value="#FFF3CD"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsDownloaded}" Value="True">
+                                        <Setter Property="Background" Value="#D4EDDA"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
+                        <TextBlock FontSize="12" FontWeight="SemiBold">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Text" Value="Not installed"/>
+                                    <Setter Property="Foreground" Value="#856404"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsDownloaded}" Value="True">
+                                            <Setter Property="Text" Value="Installed"/>
+                                            <Setter Property="Foreground" Value="#155724"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </Border>
+                </StackPanel>
+                
+                <TextBlock Text="Description" 
                           FontSize="18" 
                           FontWeight="SemiBold"
                           Margin="0,0,0,10"
@@ -89,10 +143,9 @@
                           Foreground="#666666"
                           LineHeight="22"/>
                 
-                <!-- 发布日期 -->
                 <StackPanel Orientation="Horizontal" 
                            Margin="0,0,0,20">
-                    <TextBlock Text="发布日期：" 
+                    <TextBlock Text="Release Date: " 
                               FontSize="14" 
                               Foreground="#666666"/>
                     <TextBlock Text="{Binding Game.CreatedAt, StringFormat=yyyy-MM-dd}" 
@@ -103,14 +156,16 @@
             </StackPanel>
         </ScrollViewer>
         
-        <!-- 操作按钮 -->
-        <StackPanel Grid.Row="2" 
-                   Orientation="Horizontal" 
-                   HorizontalAlignment="Right"
-                   Margin="0,20,0,0">
+        <StackPanel Grid.Row="2" Margin="0,20,0,0">
+            <!-- Status message (operation feedback) -->
+            <TextBlock Text="{Binding StatusMessage}" 
+                      FontSize="13" Foreground="#007ACC" FontWeight="SemiBold"
+                      HorizontalAlignment="Right" Margin="0,0,0,8"
+                      Visibility="{Binding StatusMessage, Converter={StaticResource StringToVisibilityConverter}}"/>
             
-            <!-- 购买按钮 -->
-            <Button Content="购买游戏" 
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+            
+            <Button Content="Buy Game" 
                    Command="{Binding PurchaseCommand}"
                    Visibility="{Binding IsPurchased, Converter={StaticResource InverseBoolToVisibilityConverter}}"
                    Padding="20,12"
@@ -144,10 +199,10 @@
                 </Button.Style>
             </Button>
             
-            <!-- 下载按钮 -->
-            <Button Content="下载游戏" 
+            <!-- Download: visible when purchased but not downloaded -->
+            <Button Content="Download" 
                    Command="{Binding DownloadCommand}"
-                   Visibility="{Binding IsPurchased, Converter={StaticResource BoolToVisibilityConverter}}"
+                   Visibility="{Binding ShowDownloadButton, Converter={StaticResource BoolToVisibilityConverter}}"
                    Padding="20,12"
                    Margin="0,0,10,0"
                    FontSize="16"
@@ -174,17 +229,48 @@
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter Property="Background" Value="#005A9E"/>
                             </Trigger>
-                            <Trigger Property="IsEnabled" Value="False">
-                                <Setter Property="Background" Value="#CCCCCC"/>
-                                <Setter Property="Cursor" Value="Arrow"/>
+                        </Style.Triggers>
+                    </Style>
+                </Button.Style>
+            </Button>
+            
+            <!-- Delete: visible when downloaded -->
+            <Button Content="Delete" 
+                   Command="{Binding DeleteGameCommand}"
+                   Visibility="{Binding IsDownloaded, Converter={StaticResource BoolToVisibilityConverter}}"
+                   Padding="20,12"
+                   Margin="0,0,10,0"
+                   FontSize="16"
+                   FontWeight="Bold"
+                   Background="#DC3545"
+                   Foreground="White"
+                   BorderThickness="0"
+                   Cursor="Hand">
+                <Button.Style>
+                    <Style TargetType="Button">
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="{TemplateBinding Background}"
+                                           CornerRadius="4"
+                                           Padding="{TemplateBinding Padding}">
+                                        <ContentPresenter HorizontalAlignment="Center" 
+                                                        VerticalAlignment="Center"/>
+                                    </Border>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                        <Style.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#C82333"/>
                             </Trigger>
                         </Style.Triggers>
                     </Style>
                 </Button.Style>
             </Button>
             
-            <!-- 启动按钮 -->
-            <Button Content="启动游戏" 
+            <!-- Launch: visible when downloaded -->
+            <Button Content="Launch" 
                    Command="{Binding LaunchCommand}"
                    Visibility="{Binding IsDownloaded, Converter={StaticResource BoolToVisibilityConverter}}"
                    Padding="20,12"
@@ -217,15 +303,15 @@
                 </Button.Style>
             </Button>
         </StackPanel>
+        </StackPanel>
         
-        <!-- 加载指示器 -->
         <Grid Grid.Row="0" 
               Grid.RowSpan="3" 
               Background="#80FFFFFF"
               Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibilityConverter}}">
             <StackPanel HorizontalAlignment="Center" 
                        VerticalAlignment="Center">
-                <TextBlock Text="加载中..." 
+                <TextBlock Text="Loading..." 
                           FontSize="18"
                           Foreground="#666666"/>
             </StackPanel>

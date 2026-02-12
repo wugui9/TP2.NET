@@ -10,7 +10,7 @@ using System.Text;
 namespace Gauniv.WebServer.Controllers
 {
     /// <summary>
-    /// 商店前端控制器 - 将PHP客户端转换为C# MVC视图
+    /// Store frontend controller
     /// </summary>
     public class StoreController : Controller
     {
@@ -31,7 +31,7 @@ namespace Gauniv.WebServer.Controllers
             _mapper = mapper;
         }
 
-        #region 辅助方法
+        #region Helper Methods
 
         private async Task<string?> GetCurrentUserIdAsync()
         {
@@ -45,7 +45,7 @@ namespace Gauniv.WebServer.Controllers
 
         private bool IsLoggedIn() => User.Identity?.IsAuthenticated == true;
 
-        // 格式化文件大小
+        // Format file size
         public static string FormatSize(long bytes)
         {
             if (bytes >= 1073741824)
@@ -57,13 +57,13 @@ namespace Gauniv.WebServer.Controllers
             return $"{bytes} B";
         }
 
-        // 格式化价格
+        // Format price
         public static string FormatPrice(decimal price)
         {
             return $"{price:F2} €";
         }
 
-        // 格式化日期
+        // Format date
         public static string FormatDate(DateTime date)
         {
             return date.ToString("yyyy-MM-dd HH:mm");
@@ -71,14 +71,14 @@ namespace Gauniv.WebServer.Controllers
 
         #endregion
 
-        #region 首页
+        #region Home
 
         // GET: /Store
         public async Task<IActionResult> Index()
         {
             var local_currentUserId = await GetCurrentUserIdAsync();
 
-            // 获取最新6款游戏
+            // Get latest 6 games
             var local_latestGames = await _dbContext.Games
                 .Include(g => g.Categories)
                 .Include(g => g.Owners)
@@ -96,7 +96,7 @@ namespace Gauniv.WebServer.Controllers
                 })
                 .ToListAsync();
 
-            // 获取所有分类
+            // Get all categories
             var local_categories = await _dbContext.Categories
                 .Include(c => c.Games)
                 .OrderBy(c => c.Name)
@@ -120,10 +120,10 @@ namespace Gauniv.WebServer.Controllers
 
         #endregion
 
-        #region 游戏列表
+        #region Game List
 
-        // GET: /Store/Games
-        public async Task<IActionResult> Games(int page = 1)
+        // GET: /Store/Games?page=1&categoryId=&minPrice=&maxPrice=&owned=
+        public async Task<IActionResult> Games(int page = 1, int? categoryId = null, decimal? minPrice = null, decimal? maxPrice = null, bool? owned = null)
         {
             var local_limit = 12;
             var local_offset = (page - 1) * local_limit;
@@ -133,6 +133,28 @@ namespace Gauniv.WebServer.Controllers
                 .Include(g => g.Categories)
                 .Include(g => g.Owners)
                 .AsQueryable();
+
+            // Filter by category
+            if (categoryId.HasValue && categoryId.Value > 0)
+            {
+                local_query = local_query.Where(g => g.Categories.Any(c => c.Id == categoryId.Value));
+            }
+
+            // Filter by price
+            if (minPrice.HasValue)
+            {
+                local_query = local_query.Where(g => g.Price >= minPrice.Value);
+            }
+            if (maxPrice.HasValue)
+            {
+                local_query = local_query.Where(g => g.Price <= maxPrice.Value);
+            }
+
+            // Filter by ownership
+            if (owned == true && local_currentUserId != null)
+            {
+                local_query = local_query.Where(g => g.Owners.Any(o => o.Id == local_currentUserId));
+            }
 
             var local_totalCount = await local_query.CountAsync();
             var local_totalPages = (int)Math.Ceiling(local_totalCount / (double)local_limit);
@@ -173,7 +195,11 @@ namespace Gauniv.WebServer.Controllers
                 CurrentPage = page,
                 TotalPages = local_totalPages,
                 Limit = local_limit,
-                IsLoggedIn = IsLoggedIn()
+                IsLoggedIn = IsLoggedIn(),
+                CategoryId = categoryId,
+                MinPrice = minPrice,
+                MaxPrice = maxPrice,
+                Owned = owned
             };
 
             return View(local_viewModel);
@@ -181,7 +207,7 @@ namespace Gauniv.WebServer.Controllers
 
         #endregion
 
-        #region 游戏详情
+        #region Game Details
 
         // GET: /Store/Game/5
         public async Task<IActionResult> Game(int id)
@@ -195,7 +221,7 @@ namespace Gauniv.WebServer.Controllers
 
             if (local_game == null)
             {
-                TempData["Message"] = "游戏不存在";
+                TempData["Message"] = "Game not found";
                 TempData["MessageType"] = "danger";
                 return RedirectToAction("Games");
             }
@@ -219,7 +245,7 @@ namespace Gauniv.WebServer.Controllers
         {
             if (!IsLoggedIn())
             {
-                TempData["Message"] = "请先登录";
+                TempData["Message"] = "Please login first";
                 TempData["MessageType"] = "warning";
                 return RedirectToAction("Login");
             }
@@ -230,7 +256,7 @@ namespace Gauniv.WebServer.Controllers
 
             if (local_game == null)
             {
-                TempData["Message"] = "游戏不存在";
+                TempData["Message"] = "Game not found";
                 TempData["MessageType"] = "danger";
                 return RedirectToAction("Games");
             }
@@ -240,14 +266,14 @@ namespace Gauniv.WebServer.Controllers
 
             if (local_game.Owners.Any(o => o.Id == local_user.Id))
             {
-                TempData["Message"] = "您已经拥有此游戏";
+                TempData["Message"] = "You already own this game";
                 TempData["MessageType"] = "warning";
             }
             else
             {
                 local_game.Owners.Add(local_user);
                 await _dbContext.SaveChangesAsync();
-                TempData["Message"] = "购买成功！";
+                TempData["Message"] = "Purchase successful!";
                 TempData["MessageType"] = "success";
             }
 
@@ -256,7 +282,7 @@ namespace Gauniv.WebServer.Controllers
 
         #endregion
 
-        #region 分类
+        #region Categories
 
         // GET: /Store/Categories
         public async Task<IActionResult> Categories()
@@ -295,7 +321,7 @@ namespace Gauniv.WebServer.Controllers
 
             if (local_category == null)
             {
-                TempData["Message"] = "分类不存在";
+                TempData["Message"] = "Category not found";
                 TempData["MessageType"] = "danger";
                 return RedirectToAction("Categories");
             }
@@ -331,14 +357,14 @@ namespace Gauniv.WebServer.Controllers
 
         #endregion
 
-        #region 游戏库
+        #region Library
 
         // GET: /Store/Library
         public async Task<IActionResult> Library()
         {
             if (!IsLoggedIn())
             {
-                TempData["Message"] = "请先登录以查看您的游戏库";
+                TempData["Message"] = "Please login to view your library";
                 TempData["MessageType"] = "warning";
                 return RedirectToAction("Login");
             }
@@ -366,7 +392,7 @@ namespace Gauniv.WebServer.Controllers
             var local_viewModel = new StoreLibraryViewModel
             {
                 OwnedGames = local_ownedGames,
-                UserName = local_user.FirstName ?? local_user.Email ?? "用户",
+                UserName = local_user.FirstName ?? local_user.Email ?? "User",
                 TotalSize = local_ownedGames.Sum(g => g.Size),
                 TotalValue = local_ownedGames.Sum(g => g.Price)
             };
@@ -376,14 +402,14 @@ namespace Gauniv.WebServer.Controllers
 
         #endregion
 
-        #region 个人信息
+        #region Profile
 
         // GET: /Store/Profile
         public async Task<IActionResult> Profile()
         {
             if (!IsLoggedIn())
             {
-                TempData["Message"] = "请先登录";
+                TempData["Message"] = "Please login first";
                 TempData["MessageType"] = "warning";
                 return RedirectToAction("Login");
             }
@@ -404,7 +430,7 @@ namespace Gauniv.WebServer.Controllers
 
         #endregion
 
-        #region 登录/注册/登出
+        #region Login/Register/Logout
 
         // GET: /Store/Login
         [HttpGet]
@@ -422,14 +448,14 @@ namespace Gauniv.WebServer.Controllers
 
             if (string.IsNullOrEmpty(model.Email) || string.IsNullOrEmpty(model.Password))
             {
-                model.Error = "请填写所有字段";
+                model.Error = "Please fill in all fields";
                 return View(model);
             }
 
             var local_user = await _userManager.FindByEmailAsync(model.Email);
             if (local_user == null)
             {
-                model.Error = "邮箱或密码错误";
+                model.Error = "Invalid email or password";
                 return View(model);
             }
 
@@ -441,15 +467,19 @@ namespace Gauniv.WebServer.Controllers
 
             if (!local_result.Succeeded)
             {
-                model.Error = "邮箱或密码错误";
+                model.Error = "Invalid email or password";
                 return View(model);
             }
 
-            // 保存session信息
+            // Save session info
             HttpContext.Session.SetString("UserId", local_user.Id);
             HttpContext.Session.SetString("UserEmail", local_user.Email ?? string.Empty);
 
-            TempData["Message"] = $"登录成功！欢迎回来 {local_user.FirstName}";
+            // Redirect admin to admin panel after login
+            if (await _userManager.IsInRoleAsync(local_user, "Admin"))
+            {
+                return RedirectToAction("Index", "Admin");
+            }
             TempData["MessageType"] = "success";
 
             return RedirectToAction("Index");
@@ -472,26 +502,20 @@ namespace Gauniv.WebServer.Controllers
             if (string.IsNullOrEmpty(model.Email) || string.IsNullOrEmpty(model.Password) ||
                 string.IsNullOrEmpty(model.FirstName) || string.IsNullOrEmpty(model.LastName))
             {
-                model.Error = "请填写所有字段";
+                model.Error = "Please fill in all fields";
                 return View(model);
             }
 
             if (model.Password != model.ConfirmPassword)
             {
-                model.Error = "两次输入的密码不一致";
-                return View(model);
-            }
-
-            if (model.Password.Length < 6)
-            {
-                model.Error = "密码长度至少为6个字符";
+                model.Error = "Passwords do not match";
                 return View(model);
             }
 
             var local_existingUser = await _userManager.FindByEmailAsync(model.Email);
             if (local_existingUser != null)
             {
-                model.Error = "该邮箱已被注册";
+                model.Error = "This email is already registered";
                 return View(model);
             }
 
@@ -509,11 +533,11 @@ namespace Gauniv.WebServer.Controllers
 
             if (!local_result.Succeeded)
             {
-                model.Error = "注册失败: " + string.Join(", ", local_result.Errors.Select(e => e.Description));
+                model.Error = "Registration failed: " + string.Join(", ", local_result.Errors.Select(e => e.Description));
                 return View(model);
             }
 
-            TempData["Message"] = "注册成功！请登录";
+            TempData["Message"] = "Registration successful! Please login";
             TempData["MessageType"] = "success";
 
             return RedirectToAction("Login");
@@ -525,7 +549,7 @@ namespace Gauniv.WebServer.Controllers
             await _signInManager.SignOutAsync();
             HttpContext.Session.Clear();
 
-            TempData["Message"] = "已成功退出登录";
+            TempData["Message"] = "You have been logged out";
             TempData["MessageType"] = "info";
 
             return RedirectToAction("Index");
@@ -533,14 +557,14 @@ namespace Gauniv.WebServer.Controllers
 
         #endregion
 
-        #region 下载
+        #region Download
 
         // GET: /Store/Download/5
         public async Task<IActionResult> Download(int id)
         {
             if (!IsLoggedIn())
             {
-                TempData["Message"] = "请先登录";
+                TempData["Message"] = "Please login first";
                 TempData["MessageType"] = "warning";
                 return RedirectToAction("Login");
             }
@@ -554,7 +578,7 @@ namespace Gauniv.WebServer.Controllers
 
             if (local_game == null)
             {
-                TempData["Message"] = "游戏不存在";
+                TempData["Message"] = "Game not found";
                 TempData["MessageType"] = "danger";
                 return RedirectToAction("Library");
             }
@@ -562,7 +586,7 @@ namespace Gauniv.WebServer.Controllers
             var local_currentUserId = await GetCurrentUserIdAsync();
             if (local_currentUserId == null || !local_game.Owners.Any(o => o.Id == local_currentUserId))
             {
-                TempData["Message"] = "您没有此游戏或游戏不存在";
+                TempData["Message"] = "You do not own this game or it does not exist";
                 TempData["MessageType"] = "danger";
                 return RedirectToAction("Library");
             }
@@ -596,7 +620,7 @@ namespace Gauniv.WebServer.Controllers
                 return Forbid();
             }
 
-            // 如果没有文件数据，返回示例文件
+            // Return demo file if no file data
             if (local_game.Payload == null || local_game.Payload.Length == 0)
             {
                 var local_demoContent = Encoding.UTF8.GetBytes($"Demo game: {local_game.Name}\nThis is a test game file.");

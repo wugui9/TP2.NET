@@ -13,14 +13,14 @@ command.CommandText = @"
 using var reader = command.ExecuteReader();
 
 Console.WriteLine("=================================");
-Console.WriteLine("    用户密码查看器");
+Console.WriteLine("    User Password Viewer");
 Console.WriteLine("=================================\n");
 
 while (reader.Read())
 {
-    Console.WriteLine($"邮箱: {reader.GetString(0)}");
-    Console.WriteLine($"姓名: {reader.GetString(1)} {reader.GetString(2)}");
-    Console.WriteLine($"明文密码: {reader.GetString(3)}");
-    Console.WriteLine($"加密密码: {reader.GetString(4)}...");
+    Console.WriteLine($"Email: {reader.GetString(0)}");
+    Console.WriteLine($"Name: {reader.GetString(1)} {reader.GetString(2)}");
+    Console.WriteLine($"Plain Password: {reader.GetString(3)}");
+    Console.WriteLine($"Hashed Password: {reader.GetString(4)}...");
     Console.WriteLine("─────────────────────────────────");
 }

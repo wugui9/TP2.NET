@@ -4,10 +4,6 @@ using System.Windows.Data;
 
 namespace Gauniv.WpfClient.Converters;
 
-/// <summary>
-/// 将布尔值转换为 Visibility
-/// True -> Visible, False -> Collapsed
-/// </summary>
 public class BoolToVisibilityConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)

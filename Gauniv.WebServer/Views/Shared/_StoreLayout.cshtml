@@ -3,11 +3,11 @@
 @inject SignInManager<User> SignInManager
 @inject UserManager<User> UserManager
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@ViewData["Title"] - Gauniv 游戏平台</title>
+    <title>@ViewData["Title"] - Gauniv Game Platform</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
@@ -36,7 +36,6 @@
             overflow-x: hidden;
         }
 
-        /* 像素块状云朵效果 */
         body::before {
             content: '';
             position: fixed;
@@ -77,6 +76,8 @@
             border-bottom: 4px solid #3D2817;
             border-top: 4px solid rgba(255,255,255,0.3);
             image-rendering: pixelated;
+            position: relative;
+            z-index: 1050;
         }
 
         .navbar-brand {
@@ -102,6 +103,8 @@
         .main-container {
             margin-top: 30px;
             margin-bottom: 50px;
+            position: relative;
+            z-index: 1;
         }
 
         .card {
@@ -306,6 +309,7 @@
             color: #F4A300;
             font-family: 'Press Start 2P', 'Courier New', monospace;
             letter-spacing: 1px;
+            white-space: nowrap;
         }
 
         .price-tag::before {
@@ -348,6 +352,7 @@
             border: 4px solid #654321;
             border-radius: 0;
             background: #FFF8DC;
+            z-index: 1060;
         }
 
         .dropdown-item {
@@ -441,26 +446,35 @@
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
                         <a class="nav-link" asp-controller="Store" asp-action="Index">
-                            <i class="bi bi-house"></i> 首页
+                            <i class="bi bi-house"></i> Home
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" asp-controller="Store" asp-action="Games">
-                            <i class="bi bi-collection"></i> 游戏商店
+                            <i class="bi bi-collection"></i> Store
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" asp-controller="Store" asp-action="Categories">
-                            <i class="bi bi-tags"></i> 分类
+                            <i class="bi bi-tags"></i> Categories
                         </a>
                     </li>
                     @if (SignInManager.IsSignedIn(User))
                     {
                         <li class="nav-item">
                             <a class="nav-link" asp-controller="Store" asp-action="Library">
-                                <i class="bi bi-bookmark-star"></i> 我的游戏库
+                                <i class="bi bi-bookmark-star"></i> My Library
                             </a>
                         </li>
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Admin" asp-action="Index"
+                                   style="color: #F4D03F !important;">
+                                    <i class="bi bi-gear"></i> Admin
+                                </a>
+                            </li>
+                        }
                     }
                 </ul>
                 <ul class="navbar-nav">
@@ -471,12 +485,12 @@
                             <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
                                data-bs-toggle="dropdown">
                                 <i class="bi bi-person-circle"></i>
-                                @(local_currentUser?.FirstName ?? local_currentUser?.Email ?? "用户")
+                                @(local_currentUser?.FirstName ?? local_currentUser?.Email ?? "User")
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a class="dropdown-item" asp-controller="Store" asp-action="Profile">个人信息</a></li>
+                                <li><a class="dropdown-item" asp-controller="Store" asp-action="Profile">Profile</a></li>
                                 <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" asp-controller="Store" asp-action="Logout">退出登录</a></li>
+                                <li><a class="dropdown-item" asp-controller="Store" asp-action="Logout">Logout</a></li>
                             </ul>
                         </li>
                     }
@@ -484,12 +498,12 @@
                     {
                         <li class="nav-item">
                             <a class="nav-link" asp-controller="Store" asp-action="Login">
-                                <i class="bi bi-box-arrow-in-right"></i> 登录
+                                <i class="bi bi-box-arrow-in-right"></i> Login
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" asp-controller="Store" asp-action="Register">
-                                <i class="bi bi-person-plus"></i> 注册
+                                <i class="bi bi-person-plus"></i> Register
                             </a>
                         </li>
                     }
