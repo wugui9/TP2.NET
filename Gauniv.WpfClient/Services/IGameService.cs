@@ -12,5 +12,5 @@ public interface IGameService
     
     Task<bool> PurchaseGameAsync(int gameId);
     
-    Task<bool> DownloadGameAsync(int gameId, string downloadPath);
+    Task<string?> DownloadGameAsync(int gameId, string downloadDirectory, string? fallbackFileName = null);
 }

@@ -22,6 +22,10 @@ Transport is in `scripts/NetworkClient.cs` using JSON line protocol.
 3. Open this folder in Godot 4.x (.NET/Mono build).
 4. Run `Main.tscn`.
 
+Optional launch args:
+- `--host=127.0.0.1`
+- `--port=7000`
+
 ## Note
 
 This environment cannot restore `Godot.NET.Sdk` from NuGet due network restrictions,

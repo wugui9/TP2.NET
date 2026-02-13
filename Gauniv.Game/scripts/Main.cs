@@ -50,6 +50,8 @@ public partial class Main : Control
     private string _mjSessionId = string.Empty;
     private int? _targetRow;
     private int? _targetCol;
+    private string _launchHost = "127.0.0.1";
+    private int _launchPort = 7000;
 
     private List<RoomSummaryModel> _rooms = new();
     private List<PlayerStateModel> _players = new();
@@ -79,6 +81,7 @@ public partial class Main : Control
         _network.MessageReceived += OnMessageReceived;
 
         GetNode<Label>("Root/Stack/TitleLabel").Text = "Gauniv Glass Arena";
+        ParseLaunchArguments();
 
         SetStatus("Disconnected");
         try
@@ -499,6 +502,7 @@ public partial class Main : Control
         screen.ConnectRequested += OnLoginConnectRequested;
         screen.LoginRequested += OnLoginRequested;
         screen.SetConnectionState(_network.IsConnected);
+        screen.SetConnectionDefaults(_launchHost, _launchPort);
         screen.SetStatusText(_network.IsConnected ? "Connected. Please login." : "Please connect first.");
 
         _currentLogin = screen;
@@ -792,5 +796,32 @@ public partial class Main : Control
         _observers = new List<ObserverStateModel>();
         _lastResult = null;
         _pendingJoinRoomId = string.Empty;
+    }
+
+    private void ParseLaunchArguments()
+    {
+        foreach (var arg in OS.GetCmdlineUserArgs())
+        {
+            if (arg.StartsWith("--host=", StringComparison.OrdinalIgnoreCase))
+            {
+                var value = arg["--host=".Length..].Trim();
+                if (!string.IsNullOrWhiteSpace(value))
+                {
+                    _launchHost = value;
+                }
+                continue;
+            }
+
+            if (arg.StartsWith("--port=", StringComparison.OrdinalIgnoreCase))
+            {
+                var value = arg["--port=".Length..].Trim();
+                if (int.TryParse(value, out var parsedPort) && parsedPort > 0 && parsedPort <= 65535)
+                {
+                    _launchPort = parsedPort;
+                }
+                continue;
+            }
+
+        }
     }
 }

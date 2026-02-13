@@ -1,4 +1,6 @@
 using System.IO;
+using System.IO.Compression;
+using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Gauniv.WpfClient.Models;
@@ -12,7 +14,6 @@ namespace Gauniv.WpfClient.ViewModels;
 public partial class GameDetailsViewModel : ViewModelBase, INavigationAware
 {
     private readonly IGameService _gameService;
-    private readonly IAuthService _authService;
     private readonly INavigationService _navigationService;
 
     [ObservableProperty]
@@ -43,11 +44,9 @@ public partial class GameDetailsViewModel : ViewModelBase, INavigationAware
 
     public GameDetailsViewModel(
         IGameService gameService, 
-        IAuthService authService,
         INavigationService navigationService)
     {
         _gameService = gameService;
-        _authService = authService;
         _navigationService = navigationService;
     }
 
@@ -73,11 +72,8 @@ public partial class GameDetailsViewModel : ViewModelBase, INavigationAware
                 IsPurchased = Game.IsOwned;
 
                 // Check if locally downloaded
-                var downloadsFolder = Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-                    "Gauniv", "Games");
-                var filePath = Path.Combine(downloadsFolder, $"{Game.Name}.txt");
-                if (File.Exists(filePath))
+                var filePath = ResolveInstalledGamePath(Game);
+                if (!string.IsNullOrWhiteSpace(filePath))
                 {
                     IsDownloaded = true;
                     DownloadPath = filePath;
@@ -138,20 +134,12 @@ public partial class GameDetailsViewModel : ViewModelBase, INavigationAware
         
         try
         {
-            // Set download path
-            var downloadsFolder = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-                "Gauniv", "Games");
-            
-            Directory.CreateDirectory(downloadsFolder);
-            
-            var filePath = Path.Combine(downloadsFolder, $"{Game.Name}.txt");
-            
-            var success = await _gameService.DownloadGameAsync(Game.Id, filePath);
-            if (success)
+            var installDirectory = GetGameInstallDirectory(Game);
+            var downloadPath = await _gameService.DownloadGameAsync(Game.Id, installDirectory, Game.FileName);
+            if (!string.IsNullOrWhiteSpace(downloadPath))
             {
                 IsDownloaded = true;
-                DownloadPath = filePath;
+                DownloadPath = downloadPath;
                 StatusMessage = "Download successful!";
             }
             else
@@ -176,15 +164,52 @@ public partial class GameDetailsViewModel : ViewModelBase, INavigationAware
 
         try
         {
-            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+            var extension = Path.GetExtension(DownloadPath).ToLowerInvariant();
+            if (extension == ".zip")
             {
-                FileName = DownloadPath,
-                UseShellExecute = true
-            });
+                LaunchFromZipPackage();
+                return;
+            }
+
+            var workingDirectory = Path.GetDirectoryName(DownloadPath) ?? Environment.CurrentDirectory;
+            System.Diagnostics.ProcessStartInfo startInfo;
+
+            if (extension == ".ps1")
+            {
+                startInfo = new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = "powershell",
+                    Arguments = $"-ExecutionPolicy Bypass -File \"{DownloadPath}\"",
+                    UseShellExecute = false,
+                    WorkingDirectory = workingDirectory
+                };
+            }
+            else if (extension is ".cmd" or ".bat")
+            {
+                startInfo = new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = "cmd",
+                    Arguments = $"/c \"{DownloadPath}\"",
+                    UseShellExecute = false,
+                    WorkingDirectory = workingDirectory
+                };
+            }
+            else
+            {
+                startInfo = new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = DownloadPath,
+                    UseShellExecute = true,
+                    WorkingDirectory = workingDirectory
+                };
+            }
+
+            System.Diagnostics.Process.Start(startInfo);
+            StatusMessage = "Game launched.";
         }
-        catch
+        catch (Exception ex)
         {
-            // Handle error
+            StatusMessage = $"Launch failed: {ex.Message}";
         }
     }
 
@@ -198,6 +223,20 @@ public partial class GameDetailsViewModel : ViewModelBase, INavigationAware
             if (File.Exists(DownloadPath))
             {
                 File.Delete(DownloadPath);
+            }
+
+            var extractedDirectory = GetExtractedDirectory(DownloadPath);
+            if (Directory.Exists(extractedDirectory))
+            {
+                Directory.Delete(extractedDirectory, true);
+            }
+
+            var gameDirectory = Path.GetDirectoryName(DownloadPath);
+            if (!string.IsNullOrWhiteSpace(gameDirectory)
+                && Directory.Exists(gameDirectory)
+                && !Directory.EnumerateFileSystemEntries(gameDirectory).Any())
+            {
+                Directory.Delete(gameDirectory);
             }
 
             IsDownloaded = false;
@@ -220,6 +259,166 @@ public partial class GameDetailsViewModel : ViewModelBase, INavigationAware
         else
         {
             _navigationService.NavigateTo<GameListViewModel>();
+        }
+    }
+
+    private static string GetGameInstallDirectory(Game game)
+    {
+        var root = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "Gauniv",
+            "Games");
+
+        return Path.Combine(root, $"game-{game.Id}");
+    }
+
+    private static string? ResolveInstalledGamePath(Game game)
+    {
+        var directory = GetGameInstallDirectory(game);
+        if (!Directory.Exists(directory))
+        {
+            return null;
+        }
+
+        if (!string.IsNullOrWhiteSpace(game.FileName))
+        {
+            var expectedPath = Path.Combine(directory, SanitizeFileName(game.FileName));
+            if (File.Exists(expectedPath))
+            {
+                return expectedPath;
+            }
+        }
+
+        return Directory
+            .GetFiles(directory)
+            .OrderByDescending(File.GetLastWriteTimeUtc)
+            .FirstOrDefault();
+    }
+
+    private static string SanitizeFileName(string fileName)
+    {
+        var invalidChars = Path.GetInvalidFileNameChars();
+        var cleaned = new string(fileName.Select(c => invalidChars.Contains(c) ? '_' : c).ToArray()).Trim();
+        return string.IsNullOrWhiteSpace(cleaned) ? "download.bin" : cleaned;
+    }
+
+    private void LaunchFromZipPackage()
+    {
+        var extractedDirectory = PrepareExtractedDirectory(DownloadPath);
+        if (string.IsNullOrWhiteSpace(extractedDirectory))
+        {
+            StatusMessage = "Launch failed: cannot create extraction directory. Please close running game/editor and try again.";
+            return;
+        }
+
+        ZipFile.ExtractToDirectory(DownloadPath, extractedDirectory, true);
+
+        var executablePath = ResolveExecutableFromExtractedPackage(extractedDirectory);
+        if (string.IsNullOrWhiteSpace(executablePath))
+        {
+            StatusMessage = "Package extracted, but no .exe found. Please upload an exported runnable build.";
+            return;
+        }
+
+        var startInfo = new System.Diagnostics.ProcessStartInfo
+        {
+            FileName = executablePath,
+            UseShellExecute = true,
+            WorkingDirectory = Path.GetDirectoryName(executablePath) ?? extractedDirectory
+        };
+
+        System.Diagnostics.Process.Start(startInfo);
+        StatusMessage = "Game launched from package.";
+    }
+
+    private string? ResolveExecutableFromExtractedPackage(string extractedDirectory)
+    {
+        var executables = Directory
+            .EnumerateFiles(extractedDirectory, "*.exe", SearchOption.AllDirectories)
+            .Where(path => !path.EndsWith("vshost.exe", StringComparison.OrdinalIgnoreCase))
+            .ToList();
+
+        if (executables.Count == 0)
+        {
+            return null;
+        }
+
+        if (Game is not null && !string.IsNullOrWhiteSpace(Game.FileName))
+        {
+            var expectedName = Path.GetFileName(Game.FileName);
+            var exact = executables.FirstOrDefault(path =>
+                string.Equals(Path.GetFileName(path), expectedName, StringComparison.OrdinalIgnoreCase));
+            if (!string.IsNullOrWhiteSpace(exact))
+            {
+                return exact;
+            }
+        }
+
+        if (Game is not null && !string.IsNullOrWhiteSpace(Game.Name))
+        {
+            var marker = Game.Name.Trim();
+            var matched = executables.FirstOrDefault(path =>
+                Path.GetFileNameWithoutExtension(path).Contains(marker, StringComparison.OrdinalIgnoreCase));
+            if (!string.IsNullOrWhiteSpace(matched))
+            {
+                return matched;
+            }
+        }
+
+        return executables
+            .OrderBy(path => path.Count(c => c == Path.DirectorySeparatorChar || c == Path.AltDirectorySeparatorChar))
+            .ThenBy(path => path, StringComparer.OrdinalIgnoreCase)
+            .FirstOrDefault();
+    }
+
+    private static string GetExtractedDirectory(string packagePath)
+    {
+        var packageName = Path.GetFileNameWithoutExtension(packagePath);
+        var gameFolder = Path.GetFileName(Path.GetDirectoryName(packagePath)?.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)) ?? "game";
+        var root = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "Gauniv",
+            "ExtractedGames");
+
+        return Path.Combine(root, $"{gameFolder}_{packageName}_extracted");
+    }
+
+    private static string? PrepareExtractedDirectory(string packagePath)
+    {
+        var primary = GetExtractedDirectory(packagePath);
+        if (TryResetDirectory(primary))
+        {
+            return primary;
+        }
+
+        var fallback = $"{primary}_{DateTime.UtcNow:yyyyMMddHHmmss}";
+        if (TryResetDirectory(fallback))
+        {
+            return fallback;
+        }
+
+        return null;
+    }
+
+    private static bool TryResetDirectory(string directoryPath)
+    {
+        try
+        {
+            if (Directory.Exists(directoryPath))
+            {
+                Directory.Delete(directoryPath, true);
+            }
+
+            Directory.CreateDirectory(directoryPath);
+            return true;
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return false;
+        }
+        catch (IOException)
+        {
+            return false;
         }
     }
 }

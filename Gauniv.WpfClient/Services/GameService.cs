@@ -1,5 +1,6 @@
 using System.IO;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using Gauniv.WpfClient.Models;
@@ -115,23 +116,51 @@ public class GameService : IGameService
         }
     }
 
-    public async Task<bool> DownloadGameAsync(int gameId, string downloadPath)
+    public async Task<string?> DownloadGameAsync(int gameId, string downloadDirectory, string? fallbackFileName = null)
     {
         try
         {
             var response = await _httpClient.GetAsync($"/api/games/{gameId}/download");
             if (response.IsSuccessStatusCode)
             {
+                Directory.CreateDirectory(downloadDirectory);
+
+                var fileName = ResolveDownloadFileName(response.Content.Headers.ContentDisposition, fallbackFileName, gameId);
+                var downloadPath = Path.Combine(downloadDirectory, fileName);
+
                 var content = await response.Content.ReadAsByteArrayAsync();
                 await File.WriteAllBytesAsync(downloadPath, content);
-                return true;
+                return downloadPath;
             }
 
-            return false;
+            return null;
         }
         catch
         {
-            return false;
+            return null;
         }
+    }
+
+    private static string ResolveDownloadFileName(ContentDispositionHeaderValue? disposition, string? fallbackFileName, int gameId)
+    {
+        var remoteName = disposition?.FileNameStar ?? disposition?.FileName;
+        if (!string.IsNullOrWhiteSpace(remoteName))
+        {
+            return SanitizeFileName(remoteName.Trim('"'));
+        }
+
+        if (!string.IsNullOrWhiteSpace(fallbackFileName))
+        {
+            return SanitizeFileName(fallbackFileName);
+        }
+
+        return $"game-{gameId}.bin";
+    }
+
+    private static string SanitizeFileName(string name)
+    {
+        var invalidChars = Path.GetInvalidFileNameChars();
+        var cleaned = new string(name.Select(c => invalidChars.Contains(c) ? '_' : c).ToArray()).Trim();
+        return string.IsNullOrWhiteSpace(cleaned) ? "download.bin" : cleaned;
     }
 }

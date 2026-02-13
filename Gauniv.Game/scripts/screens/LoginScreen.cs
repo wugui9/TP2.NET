@@ -21,6 +21,9 @@ public partial class LoginScreen : Control
     private bool _hasPendingConnected;
     private string _pendingStatus = string.Empty;
     private bool _hasPendingStatus;
+    private string _pendingHost = "127.0.0.1";
+    private int _pendingPort = 7000;
+    private bool _hasPendingConnectionDefaults;
 
     public override void _Ready()
     {
@@ -43,6 +46,7 @@ public partial class LoginScreen : Control
         GetNode<Button>("Root/Stack/CardsRow/AuthCard/AuthStack/QuickRow/QuickP2Button").Pressed += () => FillAccount("p2@test.com", "password");
         GetNode<Button>("Root/Stack/CardsRow/AuthCard/AuthStack/QuickRow/QuickP3Button").Pressed += () => FillAccount("p3@test.com", "password");
         GetNode<Button>("Root/Stack/CardsRow/AuthCard/AuthStack/QuickRow/QuickP4Button").Pressed += () => FillAccount("p4@test.com", "password");
+        FillAccount("p1@test.com", "password");
 
         if (_hasPendingConnected)
         {
@@ -54,6 +58,12 @@ public partial class LoginScreen : Control
         {
             SetStatusText(_pendingStatus);
             _hasPendingStatus = false;
+        }
+
+        if (_hasPendingConnectionDefaults)
+        {
+            SetConnectionDefaults(_pendingHost, _pendingPort);
+            _hasPendingConnectionDefaults = false;
         }
     }
 
@@ -86,6 +96,20 @@ public partial class LoginScreen : Control
             : (lower.Contains("connect")
                 ? new Color(0.80f, 0.96f, 1.0f)
                 : new Color(0.90f, 0.96f, 1.0f));
+    }
+
+    public void SetConnectionDefaults(string host, int port)
+    {
+        if (_hostInput is null || _portInput is null)
+        {
+            _pendingHost = string.IsNullOrWhiteSpace(host) ? "127.0.0.1" : host.Trim();
+            _pendingPort = port <= 0 ? 7000 : port;
+            _hasPendingConnectionDefaults = true;
+            return;
+        }
+
+        _hostInput.Text = string.IsNullOrWhiteSpace(host) ? "127.0.0.1" : host.Trim();
+        _portInput.Value = port <= 0 ? 7000 : port;
     }
 
     private void FillAccount(string email, string password)
