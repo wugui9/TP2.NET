@@ -5,9 +5,6 @@ using Gauniv.WpfClient.ViewModels;
 
 namespace Gauniv.WpfClient.Views;
 
-/// <summary>
-/// GameListView.xaml 的交互逻辑
-/// </summary>
 public partial class GameListView : UserControl
 {
     public GameListView()

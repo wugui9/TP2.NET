@@ -1,0 +1,144 @@
+@model Gauniv.WebServer.Models.AdminDashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="stat-label">Total Games</div>
+                    <div class="stat-value">@Model.TotalGames</div>
+                </div>
+                <div class="stat-icon" style="background: #eff6ff; color: #3b82f6;">
+                    <i class="bi bi-joystick"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="stat-label">Total Categories</div>
+                    <div class="stat-value">@Model.TotalCategories</div>
+                </div>
+                <div class="stat-icon" style="background: #f0fdf4; color: #22c55e;">
+                    <i class="bi bi-tags"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="stat-label">Total Users</div>
+                    <div class="stat-value">@Model.TotalUsers</div>
+                </div>
+                <div class="stat-icon" style="background: #fef3c7; color: #f59e0b;">
+                    <i class="bi bi-people"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="stat-label">Total Value</div>
+                    <div class="stat-value" style="font-size: 1.4rem;">@Model.TotalRevenue.ToString("F2") €</div>
+                </div>
+                <div class="stat-icon" style="background: #fdf2f8; color: #ec4899;">
+                    <i class="bi bi-currency-euro"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="admin-table">
+            <div class="d-flex align-items-center justify-content-between p-3 pb-0">
+                <h6 class="fw-bold mb-0">Recently Added Games</h6>
+                <a href="@Url.Action("Games", "Admin")" class="btn btn-admin btn-admin-outline" style="font-size: 0.8rem;">
+                    View All <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+            </div>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Game Name</th>
+                        <th>Price</th>
+                        <th>Category</th>
+                        <th>Created At</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var local_game in Model.RecentGames)
+                    {
+                        <tr>
+                            <td>
+                                <a href="@Url.Action("EditGame", "Admin", new { id = local_game.Id })" class="text-decoration-none fw-medium">
+                                    @local_game.Name
+                                </a>
+                            </td>
+                            <td><span class="fw-medium" style="color: #059669;">@local_game.Price.ToString("F2") €</span></td>
+                            <td>@string.Join(", ", local_game.CategoryNames)</td>
+                            <td class="text-muted" style="font-size: 0.85rem;">@local_game.CreatedAt.ToString("yyyy-MM-dd")</td>
+                        </tr>
+                    }
+                    @if (!Model.RecentGames.Any())
+                    {
+                        <tr>
+                            <td colspan="4" class="text-center text-muted py-4">No games yet</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="admin-table">
+            <div class="d-flex align-items-center justify-content-between p-3 pb-0">
+                <h6 class="fw-bold mb-0">Recent Users</h6>
+                <a href="@Url.Action("Users", "Admin")" class="btn btn-admin btn-admin-outline" style="font-size: 0.8rem;">
+                    View All <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+            </div>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Games</th>
+                        <th>Registered</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var local_user in Model.RecentUsers)
+                    {
+                        <tr>
+                            <td>
+                                <a href="@Url.Action("UserDetail", "Admin", new { id = local_user.Id })" class="text-decoration-none">
+                                    <div class="fw-medium">@local_user.FirstName @local_user.LastName</div>
+                                    <small class="text-muted">@local_user.Email</small>
+                                </a>
+                            </td>
+                            <td class="fw-medium">@local_user.OwnedGameCount</td>
+                            <td class="text-muted" style="font-size: 0.85rem;">@local_user.RegisteredAt.ToString("yyyy-MM-dd")</td>
+                        </tr>
+                    }
+                    @if (!Model.RecentUsers.Any())
+                    {
+                        <tr>
+                            <td colspan="3" class="text-center text-muted py-4">No users yet</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

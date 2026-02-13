@@ -1,0 +1,48 @@
+@model Gauniv.WebServer.Models.AdminCreateCategoryViewModel
+@{
+    ViewData["Title"] = "Add Category";
+}
+
+<div class="admin-breadcrumb">
+    <a href="@Url.Action("Index", "Admin")">Dashboard</a>
+    <i class="bi bi-chevron-right" style="font-size: 0.7rem;"></i>
+    <a href="@Url.Action("Categories", "Admin")">Categories</a>
+    <i class="bi bi-chevron-right" style="font-size: 0.7rem;"></i>
+    <span>Add Category</span>
+</div>
+
+<div class="row">
+    <div class="col-lg-6">
+        <div class="admin-table p-4">
+            @if (!string.IsNullOrEmpty(Model.Error))
+            {
+                <div class="admin-alert alert alert-danger">
+                    <i class="bi bi-exclamation-triangle me-2"></i>@Model.Error
+                </div>
+            }
+
+            <form method="post" asp-action="CreateCategory" class="admin-form">
+                @Html.AntiForgeryToken()
+
+                <div class="mb-3">
+                    <label class="form-label">Category Name <span class="text-danger">*</span></label>
+                    <input type="text" name="Name" class="form-control" placeholder="e.g. Action, RPG, Strategy..."
+                           value="@Model.Name" required maxlength="100">
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label">Description</label>
+                    <textarea name="Description" class="form-control" rows="3"
+                              placeholder="Enter description..." maxlength="500">@Model.Description</textarea>
+                </div>
+
+                <div class="d-flex gap-3">
+                    <button type="submit" class="btn btn-admin btn-admin-primary">
+                        <i class="bi bi-plus-lg me-1"></i>Create Category
+                    </button>
+                    <a href="@Url.Action("Categories", "Admin")" class="btn btn-admin btn-admin-outline">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

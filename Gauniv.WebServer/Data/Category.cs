@@ -18,7 +18,6 @@ namespace Gauniv.WebServer.Data
         [MaxLength(500)]
         public string Description { get; set; } = string.Empty;
 
-        // 属于此类别的游戏 (多对多关系)
         public ICollection<Game> Games { get; set; } = new List<Game>();
     }
 }

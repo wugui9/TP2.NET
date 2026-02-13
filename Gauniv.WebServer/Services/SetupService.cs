@@ -50,16 +50,24 @@ namespace Gauniv.WebServer.Services
             {
                 applicationDbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
                 var userManager = scope.ServiceProvider.GetService<UserManager<User>>();
+                var roleManager = scope.ServiceProvider.GetService<RoleManager<IdentityRole>>();
 
-                if (applicationDbContext is null || userManager is null)
+                if (applicationDbContext is null || userManager is null || roleManager is null)
                 {
                     throw new Exception("Required services are null");
                 }
 
-                // 确保数据库已创建
                 applicationDbContext.Database.EnsureCreated();
 
-                // 创建管理员用户
+                if (!roleManager.RoleExistsAsync("Admin").Result)
+                {
+                    var local_roleResult = roleManager.CreateAsync(new IdentityRole("Admin")).Result;
+                    if (!local_roleResult.Succeeded)
+                    {
+                        throw new Exception($"Failed to create Admin role: {string.Join(", ", local_roleResult.Errors.Select(e => e.Description))}");
+                    }
+                }
+
                 var adminUser = userManager.FindByEmailAsync("admin@gauniv.com").Result;
                 if (adminUser == null)
                 {
@@ -69,7 +77,7 @@ namespace Gauniv.WebServer.Services
                         Email = "admin@gauniv.com",
                         FirstName = "Admin",
                         LastName = "User",
-                        PlainPassword = "Admin123!", // 可选：保存明文密码（不推荐）
+                        PlainPassword = "Admin123!",
                         RegisteredAt = DateTime.UtcNow
                     };
                     var result = userManager.CreateAsync(adminUser, "Admin123!").Result;
@@ -79,7 +87,15 @@ namespace Gauniv.WebServer.Services
                     }
                 }
 
-                // 创建测试用户
+                if (!userManager.IsInRoleAsync(adminUser, "Admin").Result)
+                {
+                    var local_addRoleResult = userManager.AddToRoleAsync(adminUser, "Admin").Result;
+                    if (!local_addRoleResult.Succeeded)
+                    {
+                        throw new Exception($"Failed to assign Admin role: {string.Join(", ", local_addRoleResult.Errors.Select(e => e.Description))}");
+                    }
+                }
+
                 var testUser = userManager.FindByEmailAsync("test@test.com").Result;
                 if (testUser == null)
                 {
@@ -89,7 +105,7 @@ namespace Gauniv.WebServer.Services
                         Email = "test@test.com",
                         FirstName = "Test",
                         LastName = "User",
-                        PlainPassword = "password", // 可选：保存明文密码（不推荐）
+                        PlainPassword = "password",
                         RegisteredAt = DateTime.UtcNow
                     };
                     var result = userManager.CreateAsync(testUser, "password").Result;
@@ -179,24 +195,102 @@ namespace Gauniv.WebServer.Services
                 }
                 EnsureSeedPassword(userManager, p4User, "password", "p4@test.com");
 
-                // 创建游戏类别
+                var p1User = userManager.FindByEmailAsync("p1@test.com").Result;
+                if (p1User == null)
+                {
+                    p1User = new User()
+                    {
+                        UserName = "p1@test.com",
+                        Email = "p1@test.com",
+                        FirstName = "P1",
+                        LastName = "User",
+                        PlainPassword = "password",
+                        RegisteredAt = DateTime.UtcNow
+                    };
+                    var result = userManager.CreateAsync(p1User, "password").Result;
+                    if (!result.Succeeded)
+                    {
+                        throw new Exception($"Failed to create p1 user: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+                    }
+                }
+                EnsureSeedPassword(userManager, p1User, "password", "p1@test.com");
+
+                var p2User = userManager.FindByEmailAsync("p2@test.com").Result;
+                if (p2User == null)
+                {
+                    p2User = new User()
+                    {
+                        UserName = "p2@test.com",
+                        Email = "p2@test.com",
+                        FirstName = "P2",
+                        LastName = "User",
+                        PlainPassword = "password",
+                        RegisteredAt = DateTime.UtcNow
+                    };
+                    var result = userManager.CreateAsync(p2User, "password").Result;
+                    if (!result.Succeeded)
+                    {
+                        throw new Exception($"Failed to create p2 user: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+                    }
+                }
+                EnsureSeedPassword(userManager, p2User, "password", "p2@test.com");
+
+                var p3User = userManager.FindByEmailAsync("p3@test.com").Result;
+                if (p3User == null)
+                {
+                    p3User = new User()
+                    {
+                        UserName = "p3@test.com",
+                        Email = "p3@test.com",
+                        FirstName = "P3",
+                        LastName = "User",
+                        PlainPassword = "password",
+                        RegisteredAt = DateTime.UtcNow
+                    };
+                    var result = userManager.CreateAsync(p3User, "password").Result;
+                    if (!result.Succeeded)
+                    {
+                        throw new Exception($"Failed to create p3 user: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+                    }
+                }
+                EnsureSeedPassword(userManager, p3User, "password", "p3@test.com");
+
+                var p4User = userManager.FindByEmailAsync("p4@test.com").Result;
+                if (p4User == null)
+                {
+                    p4User = new User()
+                    {
+                        UserName = "p4@test.com",
+                        Email = "p4@test.com",
+                        FirstName = "P4",
+                        LastName = "User",
+                        PlainPassword = "password",
+                        RegisteredAt = DateTime.UtcNow
+                    };
+                    var result = userManager.CreateAsync(p4User, "password").Result;
+                    if (!result.Succeeded)
+                    {
+                        throw new Exception($"Failed to create p4 user: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+                    }
+                }
+                EnsureSeedPassword(userManager, p4User, "password", "p4@test.com");
+
                 if (!applicationDbContext.Categories.Any())
                 {
                     var categories = new List<Category>
                     {
-                        new Category { Name = "Action", Description = "快节奏的动作游戏" },
-                        new Category { Name = "Adventure", Description = "冒险探索类游戏" },
-                        new Category { Name = "RPG", Description = "角色扮演游戏" },
-                        new Category { Name = "Strategy", Description = "策略游戏" },
-                        new Category { Name = "Simulation", Description = "模拟经营类游戏" },
-                        new Category { Name = "Sports", Description = "体育竞技游戏" }
+                        new Category { Name = "Action", Description = "Fast-paced action games" },
+                        new Category { Name = "Adventure", Description = "Adventure and exploration games" },
+                        new Category { Name = "RPG", Description = "Role-playing games" },
+                        new Category { Name = "Strategy", Description = "Strategy games" },
+                        new Category { Name = "Simulation", Description = "Simulation and management games" },
+                        new Category { Name = "Sports", Description = "Sports and competition games" }
                     };
 
                     applicationDbContext.Categories.AddRange(categories);
                     applicationDbContext.SaveChanges();
                 }
 
-                // 创建测试游戏
                 if (!applicationDbContext.Games.Any())
                 {
                     var actionCategory = applicationDbContext.Categories.First(c => c.Name == "Action");
@@ -211,7 +305,7 @@ namespace Gauniv.WebServer.Services
                         new Game
                         {
                             Name = "Space Warriors",
-                            Description = "在外太空与敌人战斗的动作射击游戏。体验激烈的太空战斗，保卫地球！",
+                            Description = "An action shooter set in outer space. Experience intense space combat and defend Earth!",
                             Price = 29.99m,
                             Size = 1024 * 1024 * 500, // 500MB
                             FileName = "SpaceWarriors.exe",
@@ -222,7 +316,7 @@ namespace Gauniv.WebServer.Services
                         new Game
                         {
                             Name = "Mystery Island",
-                            Description = "探索神秘岛屿，解开古老的谜题。你能找到宝藏吗？",
+                            Description = "Explore a mysterious island and solve ancient puzzles. Can you find the treasure?",
                             Price = 19.99m,
                             Size = 1024 * 1024 * 800, // 800MB
                             FileName = "MysteryIsland.exe",
@@ -233,7 +327,7 @@ namespace Gauniv.WebServer.Services
                         new Game
                         {
                             Name = "Dragon's Quest",
-                            Description = "史诗级RPG冒险游戏。扮演勇士，打败恶龙，拯救王国！",
+                            Description = "An epic RPG adventure. Play as a warrior, defeat dragons, and save the kingdom!",
                             Price = 49.99m,
                             Size = 1024 * 1024 * 1200, // 1.2GB
                             FileName = "DragonsQuest.exe",
@@ -244,7 +338,7 @@ namespace Gauniv.WebServer.Services
                         new Game
                         {
                             Name = "Empire Builder",
-                            Description = "建立你的帝国，征服世界。策略、外交、战争，你能统治一切吗？",
+                            Description = "Build your empire and conquer the world. Strategy, diplomacy, warfare — can you rule them all?",
                             Price = 39.99m,
                             Size = 1024 * 1024 * 600, // 600MB
                             FileName = "EmpireBuilder.exe",
@@ -255,7 +349,7 @@ namespace Gauniv.WebServer.Services
                         new Game
                         {
                             Name = "Farm Life",
-                            Description = "经营你的农场，种植作物，养殖动物。体验宁静的田园生活。",
+                            Description = "Manage your farm, grow crops, and raise animals. Experience peaceful country life.",
                             Price = 14.99m,
                             Size = 1024 * 1024 * 300, // 300MB
                             FileName = "FarmLife.exe",
@@ -268,7 +362,6 @@ namespace Gauniv.WebServer.Services
                     applicationDbContext.Games.AddRange(games);
                     applicationDbContext.SaveChanges();
 
-                    // 为测试用户添加几个已购买的游戏
                     var testUserFromDb = applicationDbContext.Users
                         .Include(u => u.OwnedGames)
                         .FirstOrDefault(u => u.Email == "test@test.com");

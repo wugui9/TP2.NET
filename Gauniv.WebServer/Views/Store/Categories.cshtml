@@ -1,0 +1,56 @@
+@model Gauniv.WebServer.Models.StoreCategoriesViewModel
+@{
+    ViewData["Title"] = "Categories";
+}
+
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="text-white">
+            <i class="bi bi-tags"></i> Categories
+            <span class="badge bg-light text-dark">@Model.Categories.Count Categories</span>
+        </h1>
+    </div>
+</div>
+
+<div class="row">
+    @if (!Model.Categories.Any())
+    {
+        <div class="col-12">
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle"></i> No categories yet
+            </div>
+        </div>
+    }
+    else
+    {
+        @foreach (var category in Model.Categories)
+        {
+            <div class="col-md-6 col-lg-4 mb-4">
+                <a asp-controller="Store" asp-action="Category" asp-route-id="@category.Id" class="text-decoration-none" style="display: block; height: 100%;">
+                    <div class="card h-100" style="cursor: pointer;">
+                        <div class="card-body">
+                            <h4 class="card-title text-primary">
+                                <i class="bi bi-folder"></i>
+                                @category.Name
+                            </h4>
+
+                            <p class="card-text text-muted">
+                                @(category.Description ?? "No description")
+                            </p>
+
+                            <div class="d-flex justify-content-between align-items-center mt-3">
+                                <span class="badge bg-primary" style="font-size: 1rem;">
+                                    <i class="bi bi-collection"></i>
+                                </span>
+
+                                <span class="text-primary">
+                                    <i class="bi bi-arrow-right"></i> View Games
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        }
+    }
+</div>

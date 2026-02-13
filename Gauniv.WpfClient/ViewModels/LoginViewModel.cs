@@ -5,7 +5,7 @@ using Gauniv.WpfClient.Services;
 namespace Gauniv.WpfClient.ViewModels;
 
 /// <summary>
-/// 登录视图模型
+/// Login ViewModel
 /// </summary>
 public partial class LoginViewModel : ViewModelBase
 {
@@ -35,7 +35,7 @@ public partial class LoginViewModel : ViewModelBase
     {
         if (string.IsNullOrWhiteSpace(Username) || string.IsNullOrWhiteSpace(Password))
         {
-            ErrorMessage = "请输入用户名和密码";
+            ErrorMessage = "Please enter email and password";
             return;
         }
 
@@ -48,17 +48,17 @@ public partial class LoginViewModel : ViewModelBase
             
             if (success)
             {
-                // 登录成功，导航到游戏列表
-                _navigationService.NavigateTo<GameListViewModel>();
+                // Login successful, navigate to store
+                _navigationService.NavigateToRoot<GameListViewModel>(false);
             }
             else
             {
-                ErrorMessage = "用户名或密码错误";
+                ErrorMessage = "Invalid email or password";
             }
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"登录失败: {ex.Message}";
+            ErrorMessage = $"Login failed: {ex.Message}";
         }
         finally
         {

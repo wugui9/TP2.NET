@@ -4,10 +4,6 @@ using System.Windows.Data;
 
 namespace Gauniv.WpfClient.Converters;
 
-/// <summary>
-/// 将字符串转换为 Visibility
-/// 空字符串或 null -> Collapsed, 其他 -> Visible
-/// </summary>
 public class StringToVisibilityConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)

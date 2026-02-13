@@ -39,14 +39,10 @@ namespace Gauniv.WebServer.Data
         [MaxLength(100)]
         public string LastName { get; set; } = string.Empty;
 
-        // 用户拥有的游戏列表 (多对多关系)
         public ICollection<Game> OwnedGames { get; set; } = new List<Game>();
 
-        // 注册时间
         public DateTime RegisteredAt { get; set; } = DateTime.UtcNow;
         
-        // 明文密码字段 (用于简单认证，不推荐用于生产环境)
-        // 注意：这个字段不参与 Identity 的密码验证
         [MaxLength(100)]
         public string? PlainPassword { get; set; }
     }

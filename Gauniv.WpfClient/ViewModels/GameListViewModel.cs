@@ -7,9 +7,9 @@ using Gauniv.WpfClient.Services;
 namespace Gauniv.WpfClient.ViewModels;
 
 /// <summary>
-/// 游戏列表视图模型
+/// Game List ViewModel
 /// </summary>
-public partial class GameListViewModel : ViewModelBase
+public partial class GameListViewModel : ViewModelBase, INavigationAware
 {
     private readonly IGameService _gameService;
     private readonly INavigationService _navigationService;
@@ -30,6 +30,9 @@ public partial class GameListViewModel : ViewModelBase
     private int _pageSize = 10;
 
     [ObservableProperty]
+    private int _totalCount;
+
+    [ObservableProperty]
     private bool _isLoading;
 
     [ObservableProperty]
@@ -38,12 +41,42 @@ public partial class GameListViewModel : ViewModelBase
     [ObservableProperty]
     private bool _hasNextPage = true;
 
+    /// <summary>
+    /// Whether to show only owned games
+    /// </summary>
+    [ObservableProperty]
+    private bool _showOwnedOnly;
+
+    /// <summary>
+    /// Min price filter (null means no limit)
+    /// </summary>
+    [ObservableProperty]
+    private string _minPriceText = string.Empty;
+
+    /// <summary>
+    /// Max price filter (null means no limit)
+    /// </summary>
+    [ObservableProperty]
+    private string _maxPriceText = string.Empty;
+
+    /// <summary>
+    /// Page title (changes dynamically based on filter mode)
+    /// </summary>
+    public string PageTitle => ShowOwnedOnly ? "My Library" : "Game Store";
+
     public GameListViewModel(IGameService gameService, INavigationService navigationService)
     {
         _gameService = gameService;
         _navigationService = navigationService;
-        
-        // 初始化时加载数据
+    }
+
+    public void OnNavigatedTo(object parameter)
+    {
+        if (parameter is bool showOwned)
+        {
+            ShowOwnedOnly = showOwned;
+        }
+        OnPropertyChanged(nameof(PageTitle));
         _ = LoadDataAsync();
     }
 
@@ -60,13 +93,13 @@ public partial class GameListViewModel : ViewModelBase
             var categories = await _gameService.GetCategoriesAsync();
             Categories = new ObservableCollection<Category>(categories);
             
-            // 添加"全部"选项
-            Categories.Insert(0, new Category { Id = 0, Name = "全部" });
+            // Add "All" option
+            Categories.Insert(0, new Category { Id = 0, Name = "All" });
             SelectedCategory = Categories[0];
         }
         catch
         {
-            // 处理错误
+            // Handle error
         }
     }
 
@@ -76,18 +109,31 @@ public partial class GameListViewModel : ViewModelBase
         
         try
         {
-            var categoryId = SelectedCategory?.Id > 0 ? SelectedCategory.Id : (int?)null;
-            var games = await _gameService.GetGamesAsync(CurrentPage, PageSize, categoryId);
+            // Build filter parameters
+            int[]? categoryIds = null;
+            if (SelectedCategory is { Id: > 0 })
+            {
+                categoryIds = new[] { SelectedCategory.Id };
+            }
+
+            bool? owned = ShowOwnedOnly ? true : null;
+            int offset = (CurrentPage - 1) * PageSize;
+
+            decimal? minPrice = decimal.TryParse(MinPriceText, out var min) ? min : null;
+            decimal? maxPrice = decimal.TryParse(MaxPriceText, out var max) ? max : null;
+
+            var result = await _gameService.GetGamesAsync(offset, PageSize, categoryIds, owned, minPrice, maxPrice);
             
-            Games = new ObservableCollection<Game>(games);
+            Games = new ObservableCollection<Game>(result.Games);
+            TotalCount = result.Total;
             
-            // 更新分页按钮状态
+            // Update pagination button state
             HasPreviousPage = CurrentPage > 1;
-            HasNextPage = games.Count >= PageSize;
+            HasNextPage = offset + PageSize < result.Total;
         }
         catch
         {
-            // 处理错误
+            // Handle error
         }
         finally
         {
@@ -114,6 +160,13 @@ public partial class GameListViewModel : ViewModelBase
 
     [RelayCommand]
     private async Task FilterByCategoryAsync()
+    {
+        CurrentPage = 1;
+        await LoadGamesAsync();
+    }
+
+    [RelayCommand]
+    private async Task ApplyPriceFilterAsync()
     {
         CurrentPage = 1;
         await LoadGamesAsync();

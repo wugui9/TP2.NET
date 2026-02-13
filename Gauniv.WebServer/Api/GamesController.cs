@@ -43,7 +43,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Gauniv.WebServer.Api
 {
-    [Route("api/1.0.0/[controller]")]
+    [Route("api/[controller]")]
     [ApiController]
     public class GamesController(ApplicationDbContext appDbContext, IMapper mapper, UserManager<User> userManager, MappingProfile mp) : ControllerBase
     {
@@ -52,26 +52,35 @@ namespace Gauniv.WebServer.Api
         private readonly UserManager<User> userManager = userManager;
         private readonly MappingProfile mp = mp;
 
-        // GET: api/1.0.0/games?offset=0&limit=10&category[]=1&owned=true
+        // GET: api/1.0.0/games?offset=0&limit=10&category[]=1&owned=true&minPrice=0&maxPrice=100
         [HttpGet]
         public async Task<ActionResult<object>> GetGames(
             [FromQuery] int offset = 0,
             [FromQuery] int limit = 20,
             [FromQuery] int[]? category = null,
-            [FromQuery] bool? owned = null)
+            [FromQuery] bool? owned = null,
+            [FromQuery] decimal? minPrice = null,
+            [FromQuery] decimal? maxPrice = null)
         {
             var query = appDbContext.Games
                 .Include(g => g.Categories)
                 .Include(g => g.Owners)
                 .AsQueryable();
 
-            // 按类别筛选
             if (category != null && category.Length > 0)
             {
                 query = query.Where(g => g.Categories.Any(c => category.Contains(c.Id)));
             }
 
-            // 按拥有状态筛选
+            if (minPrice.HasValue)
+            {
+                query = query.Where(g => g.Price >= minPrice.Value);
+            }
+            if (maxPrice.HasValue)
+            {
+                query = query.Where(g => g.Price <= maxPrice.Value);
+            }
+
             if (owned.HasValue && User.Identity?.IsAuthenticated == true)
             {
                 var local_user = await userManager.GetUserAsync(User);
@@ -163,13 +172,11 @@ namespace Gauniv.WebServer.Api
                 return Unauthorized();
             }
 
-            // 检查是否已经拥有
             if (local_game.Owners.Any(o => o.Id == local_user.Id))
             {
                 return BadRequest(new { message = "You already own this game" });
             }
 
-            // 添加到用户的拥有列表
             local_game.Owners.Add(local_user);
             await appDbContext.SaveChangesAsync();
 
@@ -196,13 +203,11 @@ namespace Gauniv.WebServer.Api
                 return Unauthorized();
             }
 
-            // 检查用户是否拥有此游戏
             if (!local_game.Owners.Any(o => o.Id == local_user.Id))
             {
                 return Forbid();
             }
 
-            // 如果没有文件数据,返回示例文件
             if (local_game.Payload == null || local_game.Payload.Length == 0)
             {
                 var local_demoContent = Encoding.UTF8.GetBytes($"Demo game: {local_game.Name}\nThis is a test game file.");
@@ -225,7 +230,6 @@ namespace Gauniv.WebServer.Api
                 CreatedAt = DateTime.UtcNow
             };
 
-            // 处理上传的游戏文件
             if (dto.GameFile != null && dto.GameFile.Length > 0)
             {
                 using var local_memoryStream = new MemoryStream();
@@ -235,7 +239,6 @@ namespace Gauniv.WebServer.Api
                 local_game.Size = dto.GameFile.Length;
             }
 
-            // 添加类别
             if (dto.CategoryIds.Any())
             {
                 var local_categories = await appDbContext.Categories
@@ -272,7 +275,6 @@ namespace Gauniv.WebServer.Api
             if (dto.Price.HasValue)
                 local_game.Price = dto.Price.Value;
 
-            // 更新类别
             if (dto.CategoryIds != null)
             {
                 local_game.Categories.Clear();

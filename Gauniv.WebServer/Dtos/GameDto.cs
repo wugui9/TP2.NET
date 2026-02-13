@@ -46,7 +46,7 @@ namespace Gauniv.WebServer.Dtos
         public string? FileName { get; set; }
         public DateTime CreatedAt { get; set; }
         public List<CategoryDto> Categories { get; set; } = new();
-        public bool IsOwned { get; set; } // 当前用户是否拥有此游戏
+        public bool IsOwned { get; set; }
     }
 
     public class GameListDto

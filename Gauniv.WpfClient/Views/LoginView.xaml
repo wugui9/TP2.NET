@@ -7,7 +7,7 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid Background="White">
-        <Border Width="400" Height="300" 
+        <Border Width="400" Height="400" 
                 Background="White"
                 BorderBrush="#CCCCCC"
                 BorderThickness="1"
@@ -19,14 +19,14 @@
             </Border.Effect>
             
             <StackPanel Margin="40">
-                <TextBlock Text="Gauniv 游戏平台" 
+                <TextBlock Text="Gauniv Game Platform" 
                           FontSize="28" 
                           FontWeight="Bold"
                           HorizontalAlignment="Center"
                           Margin="0,0,0,30"
                           Foreground="#333333"/>
                 
-                <TextBlock Text="用户名" 
+                <TextBlock Text="Email" 
                           FontSize="14" 
                           Margin="0,0,0,5"
                           Foreground="#666666"/>
@@ -36,7 +36,7 @@
                         Margin="0,0,0,15"
                         BorderBrush="#CCCCCC"/>
                 
-                <TextBlock Text="密码" 
+                <TextBlock Text="Password" 
                           FontSize="14" 
                           Margin="0,0,0,5"
                           Foreground="#666666"/>
@@ -54,7 +54,7 @@
                           TextWrapping="Wrap"
                           Visibility="{Binding ErrorMessage, Converter={StaticResource StringToVisibilityConverter}}"/>
                 
-                <Button Content="登录" 
+                <Button Content="Login" 
                        Command="{Binding LoginCommand}"
                        FontSize="16"
                        FontWeight="Bold"
@@ -90,7 +90,7 @@
                     </Button.Style>
                 </Button>
                 
-                <TextBlock Text="登录中..." 
+                <TextBlock Text="Logging in..." 
                           FontSize="14"
                           HorizontalAlignment="Center"
                           Margin="0,15,0,0"

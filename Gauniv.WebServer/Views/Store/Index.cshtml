@@ -1,0 +1,121 @@
+@model Gauniv.WebServer.Models.StoreIndexViewModel
+@using Gauniv.WebServer.Controllers
+@{
+    ViewData["Title"] = "Home";
+}
+
+<div class="row mb-5">
+    <div class="col-12">
+        <div class="card text-white" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none;">
+            <div class="card-body text-center py-5">
+                <h1 class="display-4 fw-bold mb-3" style="font-size: 1.8rem;">
+                    <i class="bi bi-controller"></i> Welcome to Gauniv Game Platform
+                </h1>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-5">
+    <div class="col-12">
+        <h2 class="text-white mb-4">
+            <i class="bi bi-tags"></i> Categories
+        </h2>
+    </div>
+    @if (Model.Categories.Any())
+    {
+        @foreach (var category in Model.Categories.Take(6))
+        {
+            <div class="col-md-4 mb-3">
+                <a asp-controller="Store" asp-action="Category" asp-route-id="@category.Id" class="text-decoration-none" style="display: block;">
+                    <div class="card" style="cursor: pointer; transition: transform 0.2s;">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i class="bi bi-folder"></i> @category.Name
+                            </h5>
+                            <p class="text-muted mb-2">
+                                @category.Description
+                            </p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="text-primary"></span>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="col-12">
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle"></i> No categories yet
+            </div>
+        </div>
+    }
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <h2 class="text-white mb-4">
+            <i class="bi bi-stars"></i> New Releases
+        </h2>
+    </div>
+    @if (!Model.LatestGames.Any())
+    {
+        <div class="col-12">
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle"></i> No games yet
+            </div>
+        </div>
+    }
+    else
+    {
+        @foreach (var game in Model.LatestGames)
+        {
+            <div class="col-md-4 mb-4">
+                <div class="card game-card">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            @game.Name
+                            @if (game.IsOwned)
+                            {
+                                <span class="badge bg-success float-end">Owned</span>
+                            }
+                        </h5>
+                        <div class="mb-3">
+                            @foreach (var catName in game.CategoryNames)
+                            {
+                                <span class="badge bg-secondary category-badge">@catName</span>
+                            }
+                        </div>
+                        <div class="mb-2">
+                            <small class="text-muted">
+                                <i class="bi bi-hdd"></i> @StoreController.FormatSize(game.Size)
+                            </small>
+                        </div>
+                        <div class="mb-3">
+                            <small class="text-muted">
+                                <i class="bi bi-clock"></i> @StoreController.FormatDate(game.CreatedAt)
+                            </small>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mt-auto">
+                            <span class="price-tag">@StoreController.FormatPrice(game.Price)</span>
+                            <a asp-controller="Store" asp-action="Game" asp-route-id="@game.Id" class="btn btn-primary btn-sm">
+                                Details
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+</div>
+
+<div class="row mt-4">
+    <div class="col-12 text-center">
+        <a asp-controller="Store" asp-action="Games" class="btn btn-lg btn-light">
+            <i class="bi bi-arrow-right"></i> Browse All Games
+        </a>
+    </div>
+</div>

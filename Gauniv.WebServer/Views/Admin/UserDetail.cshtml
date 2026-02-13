@@ -1,0 +1,133 @@
+@model Gauniv.WebServer.Models.AdminUserDetailViewModel
+@{
+    ViewData["Title"] = "User Details";
+}
+
+<div class="admin-breadcrumb">
+    <a href="@Url.Action("Index", "Admin")">Dashboard</a>
+    <i class="bi bi-chevron-right" style="font-size: 0.7rem;"></i>
+    <a href="@Url.Action("Users", "Admin")">User Management</a>
+    <i class="bi bi-chevron-right" style="font-size: 0.7rem;"></i>
+    <span>@Model.FirstName @Model.LastName</span>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="admin-table p-4">
+            <div class="text-center mb-4">
+                <div style="width: 80px; height: 80px; border-radius: 50%; background: @(Model.IsAdmin ? "#3b82f6" : "#94a3b8"); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 2rem; margin: 0 auto 16px;">
+                    @(Model.FirstName.Length > 0 ? Model.FirstName[0].ToString().ToUpper() : "?")
+                </div>
+                <h5 class="fw-bold" style="font-family: inherit; color: #1e293b; font-size: 1.1rem;">@Model.FirstName @Model.LastName</h5>
+                @if (Model.IsAdmin)
+                {
+                    <span class="fw-medium" style="color: #b45309;">Admin</span>
+                }
+                else
+                {
+                    <span class="text-muted">Regular User</span>
+                }
+            </div>
+
+            <hr>
+
+            <div style="font-size: 0.9rem;">
+                <div class="d-flex justify-content-between mb-3">
+                    <span class="text-muted">Email</span>
+                    <span class="fw-medium">@Model.Email</span>
+                </div>
+                <div class="d-flex justify-content-between mb-3">
+                    <span class="text-muted">Registered</span>
+                    <span class="fw-medium">@Model.RegisteredAt.ToString("yyyy-MM-dd HH:mm")</span>
+                </div>
+                <div class="d-flex justify-content-between mb-3">
+                    <span class="text-muted">Games Owned</span>
+                    <span class="fw-medium">@Model.OwnedGames.Count</span>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span class="text-muted">Total Value</span>
+                    <span class="fw-medium" style="color: #059669;">@Model.OwnedGames.Sum(g => g.Price).ToString("F2") €</span>
+                </div>
+            </div>
+
+            <hr>
+
+            <form method="post" asp-action="ToggleAdmin" asp-route-id="@Model.Id"
+                  onsubmit="return confirm('@(Model.IsAdmin ? "Remove admin privileges?" : "Grant admin privileges?")')">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-admin @(Model.IsAdmin ? "btn-admin-danger" : "btn-admin-success") w-100">
+                    @if (Model.IsAdmin)
+                    {
+                        <i class="bi bi-shield-x me-1"></i>
+                        <span>Remove Admin</span>
+                    }
+                    else
+                    {
+                        <i class="bi bi-shield-plus me-1"></i>
+                        <span>Grant Admin</span>
+                    }
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <div class="admin-table">
+            <div class="p-3 pb-0">
+                <h6 class="fw-bold mb-0">
+                    <i class="bi bi-joystick me-2"></i>Owned Games
+                    <span class="admin-badge ms-2" style="background: #eff6ff; color: #3b82f6;">@Model.OwnedGames.Count</span>
+                </h6>
+            </div>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Game Name</th>
+                        <th>Price</th>
+                        <th>Size</th>
+                        <th>Category</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var local_game in Model.OwnedGames)
+                    {
+                        <tr>
+                            <td>
+                                <a href="@Url.Action("EditGame", "Admin", new { id = local_game.Id })" class="text-decoration-none fw-medium">
+                                    @local_game.Name
+                                </a>
+                            </td>
+                            <td><span class="fw-medium" style="color: #059669;">@local_game.Price.ToString("F2") €</span></td>
+                            <td class="text-muted">@FormatSize(local_game.Size)</td>
+                            <td>
+                                @foreach (var local_cat in local_game.CategoryNames)
+                                {
+                                    <span class="admin-badge" style="background: #eff6ff; color: #3b82f6;">@local_cat</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                    @if (!Model.OwnedGames.Any())
+                    {
+                        <tr>
+                            <td colspan="4" class="text-center text-muted py-5">
+                                <i class="bi bi-inbox" style="font-size: 2rem; display: block; margin-bottom: 8px;"></i>
+                                No games owned
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@functions {
+    static string FormatSize(long bytes)
+    {
+        if (bytes >= 1073741824) return $"{bytes / 1073741824.0:F2} GB";
+        if (bytes >= 1048576) return $"{bytes / 1048576.0:F2} MB";
+        if (bytes >= 1024) return $"{bytes / 1024.0:F2} KB";
+        return $"{bytes} B";
+    }
+}
