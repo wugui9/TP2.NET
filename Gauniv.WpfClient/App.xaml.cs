@@ -1,3 +1,5 @@
+using System.Net;
+using System.Net.Http;
 using System.Windows;
 using Microsoft.Extensions.DependencyInjection;
 using Gauniv.WpfClient.Services;
@@ -21,16 +23,24 @@ public partial class App : Application
 
     private void ConfigureServices(IServiceCollection services)
     {
-        // 配置 HttpClient
-        services.AddHttpClient<IAuthService, AuthService>(client =>
-        {
-            client.BaseAddress = new Uri("http://localhost:5000"); 
-        });
+        const string baseUrl = "http://localhost:5231";
 
-        services.AddHttpClient<IGameService, GameService>(client =>
+        var cookieContainer = new CookieContainer();
+        var handler = new HttpClientHandler
         {
-            client.BaseAddress = new Uri("http://localhost:5000"); 
-        });
+            CookieContainer = cookieContainer,
+            UseCookies = true
+        };
+
+        // Shared HttpClient with cookie support
+        var httpClient = new HttpClient(handler)
+        {
+            BaseAddress = new Uri(baseUrl)
+        };
+
+        // Auth and Game services as singletons (share login state)
+        services.AddSingleton<IAuthService>(new AuthService(httpClient));
+        services.AddSingleton<IGameService>(new GameService(httpClient));
 
         services.AddSingleton<INavigationService, NavigationService>();
 
@@ -38,6 +48,7 @@ public partial class App : Application
         services.AddTransient<LoginViewModel>();
         services.AddTransient<GameListViewModel>();
         services.AddTransient<GameDetailsViewModel>();
+        services.AddTransient<ProfileViewModel>();
 
         services.AddSingleton<MainWindow>();
     }

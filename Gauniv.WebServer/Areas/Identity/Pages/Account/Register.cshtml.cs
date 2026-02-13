@@ -119,7 +119,6 @@ namespace Gauniv.WebServer.Areas.Identity.Pages.Account
                 await _userStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
                 await _emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
                 
-                // 可选：保存明文密码到 PlainPassword 字段（不推荐用于生产环境）
                 user.PlainPassword = Input.Password;
                 
                 var result = await _userManager.CreateAsync(user, Input.Password);

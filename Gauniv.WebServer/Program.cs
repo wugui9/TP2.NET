@@ -58,43 +58,31 @@ builder.Services.Configure<RequestLocalizationOptions>(s =>
     ];
 });
 // Add services to the container.
-// 使用 SQLite 数据库 (Using SQLite database)
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlite("Data Source=gauniv.db"));
-// 如果要使用 PostgreSQL，取消下面的注释并注释掉上面的 SQLite 配置
-// var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-// builder.Services.AddDbContext<ApplicationDbContext>(options =>
-//     options.UseNpgsql(connectionString));
-// 如果要使用 InMemory 数据库 (用于测试)
-// builder.Services.AddDbContext<ApplicationDbContext>(options =>
-//     options.UseInMemoryDatabase("Gauniv.db"));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-// 配置 Identity 服务
 builder.Services.AddDefaultIdentity<User>(options => 
 {
-    // 密码设置
     options.Password.RequireDigit = false;
     options.Password.RequireLowercase = false;
     options.Password.RequireNonAlphanumeric = false;
     options.Password.RequireUppercase = false;
-    options.Password.RequiredLength = 6;
+    options.Password.RequiredLength = 1;
     options.Password.RequiredUniqueChars = 0;
     
-    // 用户设置
     options.User.RequireUniqueEmail = true;
     
-    // 登录设置
     options.SignIn.RequireConfirmedEmail = false;
     options.SignIn.RequireConfirmedAccount = false;
 })
+.AddRoles<Microsoft.AspNetCore.Identity.IdentityRole>()
 .AddEntityFrameworkStores<ApplicationDbContext>();
 
-// 添加 Session 支持
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {
-    options.IdleTimeout = TimeSpan.FromMinutes(30); // Session 超时时间
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
 });
@@ -127,11 +115,9 @@ else
 app.UseHttpsRedirection();
 app.UseRouting();
 
-// 使用认证和授权
 app.UseAuthentication();
 app.UseAuthorization();
 
-// 使用 Session
 app.UseSession();
 
 app.MapStaticAssets();

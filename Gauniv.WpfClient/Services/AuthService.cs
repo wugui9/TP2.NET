@@ -4,29 +4,25 @@ using Gauniv.WpfClient.Models;
 
 namespace Gauniv.WpfClient.Services;
 
-/// <summary>
-/// 认证服务实现
-/// </summary>
 public class AuthService : IAuthService
 {
     private readonly HttpClient _httpClient;
     
     public User? CurrentUser { get; private set; }
-    public string? Token { get; private set; }
-    public bool IsAuthenticated => !string.IsNullOrEmpty(Token) && CurrentUser != null;
+    public bool IsAuthenticated => CurrentUser != null;
 
     public AuthService(HttpClient httpClient)
     {
         _httpClient = httpClient;
     }
 
-    public async Task<bool> LoginAsync(string username, string password)
+    public async Task<bool> LoginAsync(string email, string password)
     {
         try
         {
             var request = new LoginRequest
             {
-                Username = username,
+                Email = email,
                 Password = password
             };
 
@@ -35,14 +31,14 @@ public class AuthService : IAuthService
             if (response.IsSuccessStatusCode)
             {
                 var loginResponse = await response.Content.ReadFromJsonAsync<LoginResponse>();
-                if (loginResponse != null)
+                if (loginResponse != null && loginResponse.Success)
                 {
-                    Token = loginResponse.Token;
-                    CurrentUser = loginResponse.User;
-                    
-                    // 设置 HTTP 客户端的默认授权头
-                    _httpClient.DefaultRequestHeaders.Authorization = 
-                        new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", Token);
+                    CurrentUser = new User
+                    {
+                        Email = loginResponse.Email,
+                        FirstName = loginResponse.FirstName,
+                        LastName = loginResponse.LastName
+                    };
                     
                     return true;
                 }
@@ -56,10 +52,31 @@ public class AuthService : IAuthService
         }
     }
 
+    public async Task<User?> GetCurrentUserAsync()
+    {
+        try
+        {
+            var response = await _httpClient.GetAsync("/api/auth/me");
+            if (response.IsSuccessStatusCode)
+            {
+                var user = await response.Content.ReadFromJsonAsync<User>();
+                if (user != null)
+                {
+                    CurrentUser = user;
+                }
+                return user;
+            }
+            return CurrentUser;
+        }
+        catch
+        {
+            return CurrentUser;
+        }
+    }
+
     public void Logout()
     {
-        Token = null;
         CurrentUser = null;
-        _httpClient.DefaultRequestHeaders.Authorization = null;
+        _ = _httpClient.PostAsync("/api/auth/logout", null);
     }
 }

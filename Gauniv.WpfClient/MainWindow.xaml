@@ -6,12 +6,14 @@
         xmlns:local="clr-namespace:Gauniv.WpfClient"
         xmlns:vm="clr-namespace:Gauniv.WpfClient.ViewModels"
         xmlns:views="clr-namespace:Gauniv.WpfClient.Views"
+        xmlns:converters="clr-namespace:Gauniv.WpfClient.Converters"
         mc:Ignorable="d"
-        Title="Gauniv 游戏平台" Height="600" Width="900"
+        Title="Gauniv Game Platform" Height="600" Width="900"
         WindowStartupLocation="CenterScreen">
     
     <Window.Resources>
-        <!-- DataTemplate 映射：ViewModel -> View -->
+        <converters:BoolToVisibilityConverter x:Key="BoolToVis"/>
+        
         <DataTemplate DataType="{x:Type vm:LoginViewModel}">
             <views:LoginView />
         </DataTemplate>
@@ -23,10 +25,167 @@
         <DataTemplate DataType="{x:Type vm:GameDetailsViewModel}">
             <views:GameDetailsView />
         </DataTemplate>
+        
+        <DataTemplate DataType="{x:Type vm:ProfileViewModel}">
+            <views:ProfileView />
+        </DataTemplate>
     </Window.Resources>
     
-    <Grid>
-        <!-- 使用 ContentControl 动态显示当前 ViewModel 对应的 View -->
+    <DockPanel>
+        <!-- Navigation bar (visible after login) -->
+        <Border DockPanel.Dock="Top" Background="#1E1E2E" Padding="10,0"
+                Visibility="{Binding IsLoggedIn, Converter={StaticResource BoolToVis}}">
+            <DockPanel>
+                <!-- Left: nav buttons -->
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
+                    <TextBlock Text="GAUNIV" FontSize="16" FontWeight="Bold"
+                              Foreground="#007ACC" VerticalAlignment="Center"
+                              Margin="0,0,20,0"/>
+                    
+                    <!-- Store button -->
+                    <Button Command="{Binding GoToStoreCommand}" Padding="14,8" Margin="0,4,4,4"
+                           Cursor="Hand" BorderThickness="0">
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border x:Name="bg" Background="Transparent" CornerRadius="4"
+                                                   Padding="{TemplateBinding Padding}">
+                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="bg" Property="Background" Value="#2D2D3D"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </Button.Style>
+                        <TextBlock FontSize="13" FontWeight="SemiBold">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Foreground" Value="#888"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsStoreActive}" Value="True">
+                                            <Setter Property="Foreground" Value="White"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                            Store
+                        </TextBlock>
+                    </Button>
+                    
+                    <!-- Library button -->
+                    <Button Command="{Binding GoToLibraryCommand}" Padding="14,8" Margin="0,4,4,4"
+                           Cursor="Hand" BorderThickness="0">
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border x:Name="bg" Background="Transparent" CornerRadius="4"
+                                                   Padding="{TemplateBinding Padding}">
+                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="bg" Property="Background" Value="#2D2D3D"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </Button.Style>
+                        <TextBlock FontSize="13" FontWeight="SemiBold">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Foreground" Value="#888"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsLibraryActive}" Value="True">
+                                            <Setter Property="Foreground" Value="White"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                            My Library
+                        </TextBlock>
+                    </Button>
+                </StackPanel>
+                
+                <!-- Right: profile + logout -->
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right">
+                    
+                    <!-- Profile button -->
+                    <Button Command="{Binding GoToProfileCommand}" Padding="14,8" Margin="0,4,4,4"
+                           Cursor="Hand" BorderThickness="0">
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border x:Name="bg" Background="Transparent" CornerRadius="4"
+                                                   Padding="{TemplateBinding Padding}">
+                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="bg" Property="Background" Value="#2D2D3D"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </Button.Style>
+                        <TextBlock FontSize="13" FontWeight="SemiBold">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Foreground" Value="#888"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsProfileActive}" Value="True">
+                                            <Setter Property="Foreground" Value="White"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                            Profile
+                        </TextBlock>
+                    </Button>
+                    
+                <Button Command="{Binding LogoutCommand}"
+                       Padding="14,8" Margin="0,4" Cursor="Hand" BorderThickness="0"
+                       HorizontalAlignment="Right">
+                    <Button.Style>
+                        <Style TargetType="Button">
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border x:Name="bg" Background="Transparent" CornerRadius="4"
+                                               Padding="{TemplateBinding Padding}">
+                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="bg" Property="Background" Value="#2D2D3D"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </Button.Style>
+                    <TextBlock Text="Logout" FontSize="13" Foreground="#888"/>
+                </Button>
+                </StackPanel>
+            </DockPanel>
+        </Border>
+        
+        <!-- Content area -->
         <ContentControl Content="{Binding CurrentViewModel}" />
-    </Grid>
+    </DockPanel>
 </Window>

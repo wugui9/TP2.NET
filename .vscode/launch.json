@@ -107,13 +107,6 @@
             "console": "integratedTerminal",
             "stopAtEntry": false,
             "internalConsoleOptions": "openOnSessionStart"
-        }
-    ],
-    "compounds": [
-        {
-            "name": "启动 WebServer + Client",
-            "configurations": ["启动 WebServer", "启动 Client"],
-            "stopAll": true
-        }
+        },
     ]
 }

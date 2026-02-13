@@ -15,19 +15,17 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         
-        <!-- 标题 -->
         <TextBlock Grid.Row="0" 
-                  Text="游戏商店" 
+                  Text="{Binding PageTitle}" 
                   FontSize="28" 
                   FontWeight="Bold"
                   Margin="0,0,0,20"
                   Foreground="#333333"/>
         
-        <!-- 筛选区域 -->
         <StackPanel Grid.Row="1" 
                    Orientation="Horizontal" 
                    Margin="0,0,0,20">
-            <TextBlock Text="类别：" 
+            <TextBlock Text="Category: " 
                       FontSize="14" 
                       VerticalAlignment="Center"
                       Margin="0,0,10,0"
@@ -43,9 +41,58 @@
                     </Style>
                 </ComboBox.ItemContainerStyle>
             </ComboBox>
+            
+            <TextBlock Text="Price: " 
+                      FontSize="14" 
+                      VerticalAlignment="Center"
+                      Margin="20,0,10,0"
+                      Foreground="#666666"/>
+            <TextBox Text="{Binding MinPriceText, UpdateSourceTrigger=PropertyChanged}"
+                    Width="70"
+                    Padding="6,5"
+                    VerticalAlignment="Center"/>
+            <TextBlock Text="—" 
+                      FontSize="14" 
+                      VerticalAlignment="Center"
+                      Margin="6,0"
+                      Foreground="#666666"/>
+            <TextBox Text="{Binding MaxPriceText, UpdateSourceTrigger=PropertyChanged}"
+                    Width="70"
+                    Padding="6,5"
+                    VerticalAlignment="Center"/>
+            <Button Content="Filter"
+                   Command="{Binding ApplyPriceFilterCommand}"
+                   Padding="10,5"
+                   Margin="8,0,0,0"
+                   VerticalAlignment="Center"
+                   Background="#007ACC"
+                   Foreground="White"
+                   BorderThickness="0"
+                   Cursor="Hand">
+                <Button.Style>
+                    <Style TargetType="Button">
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="{TemplateBinding Background}"
+                                           CornerRadius="4"
+                                           Padding="{TemplateBinding Padding}">
+                                        <ContentPresenter HorizontalAlignment="Center" 
+                                                        VerticalAlignment="Center"/>
+                                    </Border>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                        <Style.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#005A9E"/>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </Button.Style>
+            </Button>
         </StackPanel>
         
-        <!-- 游戏列表 -->
         <ScrollViewer Grid.Row="2" 
                      VerticalScrollBarVisibility="Auto">
             <ItemsControl ItemsSource="{Binding Games}">
@@ -69,14 +116,14 @@
                                               FontSize="18" 
                                               FontWeight="SemiBold"
                                               Foreground="#333333"/>
-                                    <TextBlock Text="{Binding CategoryName}" 
+                                    <TextBlock Text="{Binding CategoryDisplay}" 
                                               FontSize="12" 
                                               Margin="0,5,0,0"
                                               Foreground="#999999"/>
                                 </StackPanel>
                                 
                                 <TextBlock Grid.Column="1" 
-                                          Text="{Binding Price, StringFormat=¥{0:F2}}" 
+                                          Text="{Binding Price, StringFormat={}{0:F2} €}" 
                                           FontSize="20" 
                                           FontWeight="Bold"
                                           VerticalAlignment="Center"
@@ -84,7 +131,7 @@
                                           Foreground="#007ACC"/>
                                 
                                 <Button Grid.Column="2" 
-                                       Content="查看详情" 
+                                       Content="Details" 
                                        Padding="15,8"
                                        Background="#007ACC"
                                        Foreground="White"
@@ -121,12 +168,11 @@
             </ItemsControl>
         </ScrollViewer>
         
-        <!-- 分页控制 -->
         <StackPanel Grid.Row="3" 
                    Orientation="Horizontal" 
                    HorizontalAlignment="Center"
                    Margin="0,20,0,0">
-            <Button Content="上一页" 
+            <Button Content="Previous" 
                    Command="{Binding PreviousPageCommand}"
                    IsEnabled="{Binding HasPreviousPage}"
                    Padding="15,8"
@@ -162,13 +208,13 @@
                 </Button.Style>
             </Button>
             
-            <TextBlock Text="{Binding CurrentPage, StringFormat=第 {0} 页}" 
+            <TextBlock Text="{Binding CurrentPage, StringFormat=Page {0}}" 
                       FontSize="14" 
                       VerticalAlignment="Center"
                       Margin="10"
                       Foreground="#666666"/>
             
-            <Button Content="下一页" 
+            <Button Content="Next" 
                    Command="{Binding NextPageCommand}"
                    IsEnabled="{Binding HasNextPage}"
                    Padding="15,8"
@@ -205,14 +251,13 @@
             </Button>
         </StackPanel>
         
-        <!-- 加载指示器 -->
         <Grid Grid.Row="0" 
               Grid.RowSpan="4" 
               Background="#80FFFFFF"
               Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibilityConverter}}">
             <StackPanel HorizontalAlignment="Center" 
                        VerticalAlignment="Center">
-                <TextBlock Text="加载中..." 
+                <TextBlock Text="Loading..." 
                           FontSize="18"
                           Foreground="#666666"/>
             </StackPanel>

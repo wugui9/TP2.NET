@@ -1,0 +1,112 @@
+@model Gauniv.WebServer.Models.StoreGameDetailViewModel
+@using Gauniv.WebServer.Controllers
+@{
+    ViewData["Title"] = Model.Game.Name + " - Game Details";
+}
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <h1 class="card-title mb-0">@Model.Game.Name</h1>
+                    @if (Model.Game.IsOwned)
+                    {
+                        <span class="badge bg-success" style="font-size: 1rem;">
+                            <i class="bi bi-check-circle"></i> Owned
+                        </span>
+                    }
+                </div>
+
+                <div class="mb-3">
+                    @foreach (var category in Model.Game.Categories)
+                    {
+                        <span class="badge bg-primary category-badge">@category.Name</span>
+                    }
+                </div>
+
+                <hr>
+
+                <h4><i class="bi bi-info-circle"></i> Description</h4>
+                <p class="lead">
+                    @Html.Raw(Model.Game.Description?.Replace("\n", "<br>") ?? "No description")
+                </p>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <h4><i class="bi bi-list-ul"></i> Game Info</h4>
+                <table class="table table-borderless">
+                    <tr>
+                        <td><strong><i class="bi bi-hdd"></i> File Size:</strong></td>
+                        <td>@StoreController.FormatSize(Model.Game.Size)</td>
+                    </tr>
+                    <tr>
+                        <td><strong><i class="bi bi-file-earmark"></i> Filename:</strong></td>
+                        <td>@(Model.Game.FileName ?? "N/A")</td>
+                    </tr>
+                    <tr>
+                        <td><strong><i class="bi bi-calendar"></i> Release Date:</strong></td>
+                        <td>@StoreController.FormatDate(Model.Game.CreatedAt)</td>
+                    </tr>
+                    <tr>
+                        <td><strong><i class="bi bi-tag"></i> Categories:</strong></td>
+                        <td>@string.Join(", ", Model.Game.Categories.Select(c => c.Name))</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card sticky-top" style="top: 20px;">
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    <div class="display-4 fw-bold" style="color: #27ae60;">
+                        @StoreController.FormatPrice(Model.Game.Price)
+                    </div>
+                </div>
+
+                @if (!Model.IsLoggedIn)
+                {
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i> Please login to purchase games
+                    </div>
+                }
+                else if (Model.Game.IsOwned)
+                {
+                    <div class="alert alert-success">
+                        <i class="bi bi-check-circle"></i> You own this game
+                    </div>
+                    <div class="d-grid gap-2">
+                        <a asp-controller="Store" asp-action="StartDownload" asp-route-id="@Model.Game.Id" class="btn btn-success btn-lg">
+                            <i class="bi bi-download"></i> Download
+                        </a>
+                        <a asp-controller="Store" asp-action="Library" class="btn btn-outline-primary">
+                            <i class="bi bi-bookmark-star"></i> View Library
+                        </a>
+                    </div>
+                }
+                else
+                {
+                    <form asp-controller="Store" asp-action="Purchase" asp-route-id="@Model.Game.Id" method="post">
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-cart-plus"></i> Buy Now
+                            </button>
+                        </div>
+                    </form>
+                }
+
+                <hr class="my-4">
+
+                <div class="text-center">
+                    <a asp-controller="Store" asp-action="Games" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i> Back to Store
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
