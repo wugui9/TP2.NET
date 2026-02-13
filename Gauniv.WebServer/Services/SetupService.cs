@@ -1,4 +1,4 @@
-#region Header
+﻿#region Header
 // Cyril Tisserand
 // Projet Gauniv - WebServer
 // Gauniv 2025
@@ -261,7 +261,7 @@ namespace Gauniv.WebServer.Services
                         new Game
                         {
                             Name = "Empire Builder",
-                            Description = "Build your empire and conquer the world. Strategy, diplomacy, warfare — can you rule them all?",
+                            Description = "Build your empire and conquer the world. Strategy, diplomacy, warfare â€” can you rule them all?",
                             Price = 39.99m,
                             Size = 1024 * 1024 * 600, // 600MB
                             FileName = "EmpireBuilder.exe",
@@ -282,8 +282,8 @@ namespace Gauniv.WebServer.Services
                         },
                         new Game
                         {
-                            Name = "Godot游戏",
-                            Description = "你做的 Godot 游戏源码打包版本，可下载后解压运行。",
+                            Name = "GodotGame",
+                            Description = "Your exported Godot game package, ready for download and launch.",
                             Price = 0m,
                             Size = local_godotPackage.Size,
                             FileName = local_godotPackage.FileName,
@@ -358,8 +358,12 @@ namespace Gauniv.WebServer.Services
             var local_godotGame = applicationDbContext.Games
                 .Include(g => g.Categories)
                 .Include(g => g.Owners)
-                .Where(g => g.Name == "Godot游戏" || g.Name == "GodotGame" || g.Name == "Godot Game")
-                .OrderBy(g => g.Name == "Godot游戏" ? 0 : 1)
+                .Where(g => g.Name == "GodotGame"
+                    || g.Name == "GodotGameame"
+                    || g.Name == "Godot Game"
+                    || g.Name == "Godot游戏"
+                    || g.Name == "Godotæ¸¸æˆ")
+                .OrderBy(g => g.Name == "GodotGame" ? 0 : 1)
                 .ThenBy(g => g.Id)
                 .FirstOrDefault();
 
@@ -367,7 +371,7 @@ namespace Gauniv.WebServer.Services
             {
                 local_godotGame = new Game
                 {
-                    Name = "Godot游戏",
+                    Name = "GodotGame",
                     Description = "Your exported Godot game package, ready for download and launch.",
                     Price = 0m,
                     Size = local_godotPackage.Size,
@@ -380,7 +384,7 @@ namespace Gauniv.WebServer.Services
             }
             else if (!local_godotPackage.IsFallback)
             {
-                local_godotGame.Name = "Godot游戏";
+                local_godotGame.Name = "GodotGame";
                 local_godotGame.Description = "Your exported Godot game package, ready for download and launch.";
                 local_godotGame.Price = 0m;
                 local_godotGame.Size = local_godotPackage.Size;
@@ -401,9 +405,14 @@ namespace Gauniv.WebServer.Services
                     || u.Email == "p4@test.com")
                 .ToList();
 
+            var local_existingOwnerIds = new HashSet<string>(
+                local_godotGame.Owners.Select(o => o.Id),
+                StringComparer.Ordinal);
+            var local_seenSeedIds = new HashSet<string>(StringComparer.Ordinal);
+
             foreach (var local_user in local_seedUsers)
             {
-                if (!local_godotGame.Owners.Any(o => o.Id == local_user.Id))
+                if (local_seenSeedIds.Add(local_user.Id) && local_existingOwnerIds.Add(local_user.Id))
                 {
                     local_godotGame.Owners.Add(local_user);
                 }
