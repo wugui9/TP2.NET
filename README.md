@@ -25,6 +25,10 @@ All web pages use the same port: `5231`.
 - OpenAPI JSON: `http://localhost:5231/openapi/v1.json`
 - Swagger UI: `http://localhost:5231/swagger`
 
+Admin web test account:
+- Email: `admin@gauniv.com`
+- Password: `Admin123!`
+
 ## 3) Start desktop client
 
 ```powershell
